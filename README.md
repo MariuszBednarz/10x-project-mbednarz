@@ -1,94 +1,246 @@
-# 10x Astro Starter
+# HosLU
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+> Real-time hospital bed availability tracker for Lublin region paramedics
+
+HosLU is a Progressive Web App (PWA) designed for paramedics and healthcare services in the Lublin region of Poland. It aggregates real-time data about available hospital beds, solving the critical problem of accessing this information from a slow and unresponsive government website during emergency situations.
+
+[![Node Version](https://img.shields.io/badge/node-22.14.0-brightgreen.svg)](https://nodejs.org/)
+[![Astro](https://img.shields.io/badge/Astro-5.13-FF5D01.svg)](https://astro.build/)
+[![React](https://img.shields.io/badge/React-19.1-61DAFB.svg)](https://react.dev/)
+
+## Table of Contents
+
+- [Tech Stack](#tech-stack)
+- [Getting Started Locally](#getting-started-locally)
+- [Available Scripts](#available-scripts)
+- [Project Scope](#project-scope)
+- [Project Status](#project-status)
+- [License](#license)
 
 ## Tech Stack
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+### Frontend
 
-## Prerequisites
+- **Framework**: [Astro 5](https://astro.build/) - Modern static site builder
+- **UI Library**: [React 19](https://react.dev/) - Component-based UI
+- **Language**: [TypeScript 5](https://www.typescriptlang.org/) - Type-safe JavaScript
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/) - Utility-first CSS framework
+- **Components**: [shadcn/ui](https://ui.shadcn.com/) - Reusable UI components
+- **Icons**: [Lucide React](https://lucide.dev/) - Icon library
+- **PWA**: Astro PWA plugin for offline capabilities
 
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
+### Backend & Database
 
-## Getting Started
+- **Platform**: [Supabase](https://supabase.com/) - Backend-as-a-Service
+- **Database**: PostgreSQL with Row Level Security
+- **Authentication**: Supabase Auth (email/password + JWT)
+- **API**: Supabase REST API
 
-1. Clone the repository:
+### Scraping Microservice
 
-```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
-```
+- **Framework**: [NestJS](https://nestjs.com/) - Progressive Node.js framework
+- **Scraping Engine**: [Puppeteer](https://pptr.dev/) - Headless Chrome automation
+- **Scheduling**: @nestjs/schedule (CRON jobs every 12 hours)
+- **Repository**: Separate backend repository ([scrap-app-be](https://github.com))
 
-2. Install dependencies:
+### AI Integration
 
-```bash
-npm install
-```
+- **Provider**: [Anthropic Claude API](https://www.anthropic.com/)
+- **Purpose**: Daily insights about bed availability trends
+- **Caching**: 24-hour database cache
 
-3. Run the development server:
+### Hosting
 
-```bash
-npm run dev
-```
+- **Frontend**: [Render.com](https://render.com/) Static Site
+- **Scraper**: Render.com Web Service (Free tier)
+- **Database**: Supabase Cloud (EU region)
 
-4. Build for production:
+## Getting Started Locally
 
-```bash
-npm run build
-```
+### Prerequisites
+
+- **Node.js**: v22.14.0 (specified in `.nvmrc`)
+- **npm**: Comes with Node.js
+- **Supabase Account**: For database and authentication
+- **Environment Variables**: See configuration below
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/yourusername/hoslu-frontend.git
+   cd hoslu-frontend
+   ```
+
+2. **Install Node.js version**
+
+   ```bash
+   # Using nvm (recommended)
+   nvm install
+   nvm use
+   ```
+
+3. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+4. **Set up environment variables**
+
+   Create a `.env` file in the root directory:
+
+   ```env
+   PUBLIC_SUPABASE_URL=your_supabase_project_url
+   PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+5. **Set up Supabase**
+   - Create a new Supabase project
+   - Run database migrations from `supabase/migrations/` directory
+   - Copy your project URL and anon key to `.env`
+   - See [Database Setup Guide](./supabase/migrations/DEPLOYMENT_GUIDE.md) for details
+
+6. **Run the development server**
+
+   ```bash
+   npm run dev
+   ```
+
+   The app will be available at `http://localhost:4321`
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+| Script             | Description                                  |
+| ------------------ | -------------------------------------------- |
+| `npm run dev`      | Start the development server with hot reload |
+| `npm run build`    | Build the production-ready static site       |
+| `npm run preview`  | Preview the production build locally         |
+| `npm run lint`     | Run ESLint to check code quality             |
+| `npm run lint:fix` | Automatically fix ESLint issues              |
+| `npm run format`   | Format code with Prettier                    |
 
-## Project Structure
+## Project Scope
 
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
+### Core Features (MVP)
+
+✅ **Implemented in Scraper Microservice:**
+
+- Automated data scraping from government website every 12 hours
+- Data aggregation and storage in Supabase
+- Health check endpoint for monitoring
+
+🚧 **To Be Implemented in Frontend:**
+
+- User authentication (email/password with verification)
+- Hospital and department browsing with real-time availability
+- Color-coded bed availability badges (green >5, yellow 1-5, red ≤0)
+- Favorites system (mark frequently used departments)
+- Search and filtering (by department, hospital, district)
+- AI-powered daily insights about bed availability trends
+- Stale data warnings (when data >12 hours old)
+- PWA capabilities (offline access, installable)
+- Responsive mobile-first design
+
+### Out of Scope (Post-MVP)
+
+The following features are **not included** in the MVP:
+
+- GPS navigation to hospitals
+- Push notifications
+- Other regions beyond Lublin
+- Dark mode
+- Data export to PDF
+- Historical statistics
+- Advanced filtering options
+- Profile editing
+- Multiple language support
+
+### Future Considerations
+
+Potential enhancements after MVP validation:
+
+- Redis caching for high-traffic scenarios
+- Supabase Realtime for live updates
+- Sentry error tracking
+- Historical analytics dashboard
+- Multi-region support
+
+## Project Status
+
+**Current Phase**: MVP Development
+
+| Component             | Status         | Notes                                           |
+| --------------------- | -------------- | ----------------------------------------------- |
+| Scraper Microservice  | ✅ Deployed    | Running on Render.com, scraping every 12 hours  |
+| Database Schema       | ✅ Complete    | PostgreSQL with RLS, migrations ready to deploy |
+| Frontend Application  | 🚧 In Progress | Astro + React implementation ongoing            |
+| Authentication        | 📋 Planned     | Supabase Auth integration pending               |
+| AI Insights           | 📋 Planned     | Claude API integration pending                  |
+| PWA Features          | 📋 Planned     | Service worker and manifest to be added         |
+| Production Deployment | 📋 Planned     | Render.com static site deployment               |
+
+### MVP Success Metrics
+
+- 30+ registered verified users
+- Average 3+ favorite departments per active user
+- 2x weekly login frequency over 3 months
+
+### Architecture
+
+```
+┌─────────────────┐
+│   FRONTEND      │  Astro 5 + React 19 (PWA)
+│   Render.com    │
+└────────┬────────┘
+         │ HTTPS + JWT
+         ↓
+┌─────────────────┐
+│   SUPABASE      │  PostgreSQL + Auth + REST API
+│   Cloud         │
+└────────┬────────┘
+         ↑
+         │ Service Role Key
+┌────────┴────────┐
+│   SCRAPER       │  NestJS + Puppeteer + CRON
+│   Render.com    │  (Separate Repository)
+└─────────────────┘
 ```
 
-## AI Development Support
+### Database Schema
 
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
+The application uses 4 main tables in PostgreSQL (Supabase):
 
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
+| Table            | Purpose                                  | Access Control     |
+| ---------------- | ---------------------------------------- | ------------------ |
+| `hospital_wards` | Hospital bed availability data (scraped) | Authenticated read |
+| `user_favorites` | User's favorite wards                    | User-specific RLS  |
+| `ai_insights`    | Cached AI-generated insights (24h TTL)   | Authenticated read |
+| `scraping_logs`  | Audit log for scraping operations        | Authenticated read |
 
-### Cursor IDE
+**Key Features:**
 
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
+- Row Level Security (RLS) on all tables
+- Trigram indexes for fuzzy search on ward names
+- Automated cleanup of orphaned favorites
+- Helper functions for monitoring and statistics
 
-### GitHub Copilot
+**Documentation:**
 
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
-
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
+- [Database Setup Guide](./supabase/migrations/DEPLOYMENT_GUIDE.md)
+- [Type Synchronization](./supabase/migrations/TYPE_SYNC.md)
+- [Example Queries](./supabase/migrations/EXAMPLE_QUERIES.sql)
+- [Migration Files](./supabase/migrations/)
 
 ## License
 
-MIT
+License information to be determined. Please contact the project maintainer for licensing details.
+
+---
+
+**Disclaimer**: This application provides informational data only. In case of doubt, verify information directly with the hospital. Always follow emergency protocols and use official communication channels as primary sources.
+
+**Contributing**: This is currently a private MVP project. Contributions guidelines will be added once the project reaches stable release.
+
+**Support**: For issues or questions, please open an issue in the GitHub repository.

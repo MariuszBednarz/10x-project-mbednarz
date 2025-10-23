@@ -12,10 +12,26 @@ Ratownicy medyczni tracą cenny czas próbując uzyskać aktualne informacje o d
 
 ### 3.1. Scraping i agregacja danych
 
-- Automatyczne pobieranie danych ze strony https://szpitale.lublin.uw.gov.pl/page/1,raporty-szpitali.html przy użyciu Puppeteer (strona zabezpieczona przed botami)
-- Częstotliwość: co 12-24 godziny
-- Struktura danych: Oddział → Lista Szpitali (powiat, nazwa, liczba wolnych miejsc, data aktualizacji)
-- Wartości ujemne oznaczają przepełnienie oddziału
+**Zaimplementowana mikrousługa NestJS:**
+
+- **Endpoint źródłowy:** https://szpitale.lublin.uw.gov.pl/page/1,raporty-szpitali.html (zabezpieczona przed botami)
+- **Technologia:** Puppeteer z headless Chromium, NestJS framework
+- **Częstotliwość:** Co 12 godzin (00:00 i 12:00, timezone: Europe/Warsaw) przez @nestjs/schedule CRON
+- **Proces scrapowania:**
+  1. ScraperService pobiera listę oddziałów ze strony głównej
+  2. Dla każdego oddziału z linkiem wchodzi na podstronę i ekstraktuje dane szpitali
+  3. DataService mapuje surowe dane do WardDataDto (TypeScript)
+  4. UPSERT do Supabase z konfliktem na (wardName, hospitalName)
+  5. Automatyczna deduplicja przed zapisem, szczegółowe logi operacji
+- **Struktura danych:** Oddział → Lista Szpitali (powiat, nazwa, liczba wolnych miejsc, data aktualizacji ze źródła, timestamp scrapowania)
+- **Pola timestampu:**
+  - `lastUpdated` (string) - timestamp ze strony źródłowej (niezaufany, tylko do wyświetlenia)
+  - `scrapedAt` (timestamp) - czas wykonania scrapowania przez mikrousługę (zaufany, do wszystkich operacji)
+  - `created_at`, `updated_at` - automatyczne pole bazodanowe
+- **Wartości ujemne** oznaczają przepełnienie oddziału
+- **Hosting:** Render.com
+- **Monitoring:** Health check endpoint (`/health`), szczegółowe logi (inserted/updated statistics)
+- **Error handling:** Try-catch z retry logic, zachowanie ostatnich danych przy awarii
 - Zawsze widoczny timestamp ostatniej aktualizacji oraz link do źródła danych jako fallback
 
 ### 3.2. Uwierzytelnianie użytkowników
@@ -29,10 +45,12 @@ Ratownicy medyczni tracą cenny czas próbując uzyskać aktualne informacje o d
 
 - Lista oddziałów jako ekran główny
 - Kliknięcie w oddział → redirect do listy szpitali
-- Accordiony dla szczegółów każdego szpitala:
-  - Zwiniête: nazwa, powiat, badge z liczbą miejsc (kod kolorystyczny: zielony >5, żółty 1-5, czerwony ≤0), timestamp
-  - Rozwinięte: pełne dane, dokładna data/godzina aktualizacji, link do źródła
-- Obsługa wartości ujemnych: czerwony badge, ikona ostrzeżenia, tooltip "Brak wolnych miejsc, oddział przepełniony"
+- Karty szpitali (bez accordionów - wszystkie dane widoczne):
+  - Nazwa, powiat, badge z liczbą miejsc (kod kolorystyczny: zielony >5, żółty 1-5, czerwony ≤0)
+  - Ikona lokalizacji, timestamp aktualizacji
+  - Ikona ulubionego (serce), ikona sad emoji dla przepełnienia
+  - Link do źródła danych zawsze dostępny
+- Obsługa wartości ujemnych: czerwony badge, sad emoji, tooltip "Brak wolnych miejsc, oddział przepełniony"
 
 ### 3.4. Personalizacja (ulubione oddziały)
 
@@ -43,24 +61,31 @@ Ratownicy medyczni tracą cenny czas próbując uzyskać aktualne informacje o d
 
 ### 3.5. Wyszukiwanie i filtrowanie
 
+- **Lokalizacja:** Pod tytułem "Woj. Lubelskie", w jednej linii: Search bar + Filtry
 - Live search z debounce 300ms, case-insensitive
+- Placeholder: "Szukaj oddziału lub szpitala..."
 - Na ekranie oddziałów: wyszukiwanie po nazwie oddziału
 - Na ekranie szpitali: wyszukiwanie po nazwie szpitala i powiecie
-- Clear "X" button
-- Toggle "tylko ulubione"
+- Clear "X" button (pojawia się gdy jest tekst)
+- Toggle "tylko ulubione" (Switch component)
+- Dropdown "Powiaty" z multiselect pills
 
 ### 3.6. AI Insights (Claude API)
 
 - Generowanie raz dziennie o 6:00
-- Format: jedno zdanie jako sticky banner na górze ekranu
-- Przykład: "Niska dostępność: Kardiologia (3 miejsca). Wysoka: Ortopedia (27 miejsc)"
+- **Lokalizacja:** Pod headerem (navbar), nad tytułem "Lista oddziałów", wyśrodkowany
+- Format: jedno-dwa zdania w Alert component (jasno-niebieski)
+- Przykład: "💡 Niska dostępność: Kardiologia (3 miejsca). Wysoka: Ortopedia (27 miejsc)"
 - Cache na 24h, te same insights dla wszystkich użytkowników
-- Graceful degradation jeśli API nie odpowie
+- Graceful degradation: jeśli API nie odpowie, po prostu nie pokazuj banneru
 
 ### 3.7. Obsługa nieaktualnych danych
 
-- Jeśli scraping nie powiódł się: wyświetl ostatnie dane + komunikat "Nie udało się pobrać najnowszych danych. Pokazujemy ostatnie z [data]. [Link do źródła]"
-- Badge ostrzegawczy dla danych starszych niż 24h (żółty) lub 48h (czerwony)
+- **Warning Banner:** Tuż pod headerem (navbar), przed AI Insight
+- **Trigger:** Dane starsze niż 12 godzin
+- **Treść:** "⚠️ Dane mogą być nieaktualne (ostatnia aktualizacja 12h temu). Sprawdź źródło dla pewności. [Link]"
+- **Style:** Żółty Alert component, zawsze widoczny (nie dismissible)
+- Jeśli scraping nie powiódł się: dodatkowy Error Alert: "Nie udało się pobrać najnowszych danych. Pokazujemy ostatnie dostępne."
 
 ### 3.8. Bezpieczeństwo i zgodność
 
@@ -120,12 +145,13 @@ Ratownicy medyczni tracą cenny czas próbując uzyskać aktualne informacje o d
 
 **Kryteria akceptacji:**
 
-- Po zalogowaniu widzi listę oddziałów z AI insight na górze (jedno zdanie)
-- Może użyć wyszukiwania aby znaleźć konkretny oddział
+- Po zalogowaniu widzi listę oddziałów z AI insight banner pod headerem (centered)
+- Może użyć wyszukiwania (pod "Woj. Lubelskie") aby znaleźć konkretny oddział
 - Po kliknięciu w oddział widzi listę szpitali
-- Każdy szpital pokazuje: nazwę, powiat, badge z liczbą miejsc, timestamp
-- Może rozwinąć accordion dla szczegółów
+- Każdy szpital pokazuje w jednej karcie: nazwę, powiat, badge z liczbą miejsc, timestamp, ikonę ulubionego
+- Wszystkie dane widoczne od razu (bez rozwijania accordionów)
 - Może kliknąć link do źródła danych dla weryfikacji
+- Jeśli dane >12h, widzi warning banner u góry
 
 ### US-004: Personalizacja ulubionych
 
@@ -161,20 +187,29 @@ Ratownicy medyczni tracą cenny czas próbując uzyskać aktualne informacje o d
 
 **Kryteria akceptacji:**
 
-- Timestamp ostatniej aktualizacji zawsze widoczny
-- Komunikat gdy scraping się nie powiódł: "Nie udało się pobrać najnowszych danych..."
-- Link do źródła zawsze dostępny
-- Badge ostrzegawczy dla danych >24h (żółty) lub >48h (czerwony)
+- Timestamp ostatniej aktualizacji zawsze widoczny na każdej karcie szpitala
+- Warning banner u góry (tuż pod headerem) gdy dane >12h: "⚠️ Dane mogą być nieaktualne..."
+- Komunikat gdy scraping się nie powiódł: Error Alert "Nie udało się pobrać najnowszych danych..."
+- Link do źródła zawsze dostępny w warning bannerze i footerze
 
 ## 6. Stack techniczny
 
 ### 6.1. Architektura
 
-- **Backend:** Supabase (baza danych, autentykacja)
+- **Backend:** Supabase (baza danych PostgreSQL, autentykacja JWT)
 - **Frontend:** PWA (Progressive Web App), responsywna dla telefonów i tabletów
-- **Scraping:** Puppeteer (wymaga implementacji poza Supabase - np. Vercel Functions, AWS Lambda, Railway)
+- **Scraping Microservice:** NestJS + Puppeteer (zaimplementowana, Render.com Web Service)
+  - Framework: NestJS z TypeScript
+  - Scraping engine: Puppeteer (headless Chromium)
+  - Scheduling: @nestjs/schedule (CRON: `0 */12 * * *`)
+  - Database client: @supabase/supabase-js (Service Role Key)
+  - Health monitoring: `/health` endpoint
+  - Containerization: Docker (Puppeteer base image)
 - **AI:** Claude API (Anthropic)
-- **Hosting:** Do określenia (wymagany cron job dla scrapingu)
+- **Hosting:**
+  - Scraper: Render.com Web Service (free tier)
+  - Frontend: TBC
+  - Database: Supabase Cloud (free tier MVP)
 
 ### 6.2. Bezpieczeństwo
 

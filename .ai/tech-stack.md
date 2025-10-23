@@ -33,10 +33,13 @@
 - **Framework:** Astro 5
 - **UI Library:** React 19
 - **Language:** TypeScript
-- **Styling:** Tailwind CSS + shadcn/ui
+- **Styling:** Tailwind CSS 4 + shadcn/ui (domyślne komponenty)
+- **Components:** Card, Badge, Select, Switch, Input, Alert, Separator, Skeleton, Toast, Sheet
+- **Icons:** Lucide React
 - **PWA:** Astro PWA plugin
 - **Auth Client:** @supabase/supabase-js
 - **Hosting:** Render.com Static Site
+- **Philosophy:** Feature > Design, minimalne customizacje, reużywalne komponenty
 
 ### Backend & Database
 
@@ -46,13 +49,21 @@
 - **API:** Supabase REST API + Row Level Security (RLS)
 - **Region:** EU (closest available)
 
-### Scraping Microservice
+### Scraping Microservice (ZAIMPLEMENTOWANA)
 
-- **Framework:** NestJS
-- **Scraping:** Puppeteer (proven on Render.com)
-- **Scheduling:** @nestjs/schedule (cron jobs)
-- **Client:** @supabase/supabase-js (Service Role Key)
-- **Hosting:** Render.com Web Service ($7/month)
+- **Framework:** NestJS 11.1.6
+- **Language:** TypeScript 5.9.3
+- **Scraping:** Puppeteer 24.25.0 (headless Chromium)
+- **Scheduling:** @nestjs/schedule 6.0.1 (CRON: `0 */12 * * *`, timezone: Europe/Warsaw)
+- **Database Client:** @supabase/supabase-js 2.76.0 (Service Role Key authentication)
+- **Configuration:** @nestjs/config 4.0.2 (dotenv integration)
+- **Dependencies:**
+  - `@nestjs/platform-express` - HTTP server
+  - `reflect-metadata`, `rxjs` - NestJS core dependencies
+- **Docker Base Image:** `ghcr.io/puppeteer/puppeteer:19.7.2` (używany przez Render.com)
+- **Build Tool:** @nestjs/cli 11.0.10
+- **Hosting:** Render.com Web Service (Free tier, bezpośrednie połączenie z GitHub repo)
+- **Port:** 4000 (configurable via `PORT` env var)
 
 ### AI Integration
 
@@ -76,15 +87,29 @@ hoslu-frontend/
 │   └── types/
 └── package.json
 
-hoslu-scraper/
+scrap-app-be/          # ZAIMPLEMENTOWANE
 ├── src/
-│   ├── modules/
-│   │   ├── scraper/
-│   │   ├── data/
-│   │   ├── scheduler/
-│   │   ├── ai/
-│   │   └── health/
-│   └── main.ts
+│   ├── main.ts                           # Entry point (port 4000)
+│   ├── app.module.ts                     # Root module
+│   ├── health/                           # Health check
+│   │   ├── health.controller.ts
+│   │   └── health.module.ts
+│   ├── supabase/                         # Supabase integration
+│   │   ├── supabase.service.ts          # Client initialization
+│   │   └── supabase.module.ts
+│   └── scraper/                          # Core scraping logic
+│       ├── scraper.module.ts
+│       ├── scraper.service.ts           # Puppeteer scraping
+│       ├── data.service.ts              # Data mapping & DB operations
+│       ├── scraper-scheduler.service.ts # CRON scheduling
+│       ├── interfaces/
+│       │   └── hospital.interface.ts    # TypeScript interfaces
+│       └── dto/
+│           └── ward-data.dto.ts         # Data Transfer Objects
+├── Dockerfile                            # Puppeteer image config
+├── config.env                            # Environment variables
+├── nest-cli.json                         # NestJS CLI config
+├── tsconfig.json                         # TypeScript config
 └── package.json
 ```
 
@@ -119,11 +144,20 @@ hoslu-scraper/
 - **Access:** Direct queries via Supabase client
 - **Operations:** SELECT, INSERT/DELETE favorites
 
-### Scraper → Supabase
+### Scraper → Supabase (ZAIMPLEMENTOWANE)
 
 - **Auth:** Service Role Key (bypasses RLS)
-- **Operations:** UPSERT hospitals/departments
-- **Schedule:** Every 12 hours (configurable)
+- **Operations:**
+  - UPSERT na `hospital_wards` (conflict: `wardName, hospitalName`)
+  - Automatyczna deduplicja przed zapisem (Map-based)
+  - Szczegółowe logi: records before/after, inserted/updated counts
+- **Schedule:** Co 12 godzin (00:00, 12:00 Europe/Warsaw)
+- **Data Flow:**
+  1. `ScraperService.scrapeWebsite()` → Puppeteer extraction
+  2. `DataService.mapScrapedDataToDto()` → TypeScript DTOs
+  3. `DataService.removeDuplicates()` → In-memory deduplication
+  4. `DataService.saveToSupabase()` → UPSERT operation
+- **Error Handling:** Try-catch z logowaniem, zachowanie ostatnich danych przy awarii
 
 ### Scraper → External
 
@@ -157,13 +191,21 @@ hoslu-scraper/
 
 ## 7. Scheduling & Cron Jobs
 
-### Scraping Job
+### Scraping Job (ZAIMPLEMENTOWANE)
 
-- **Frequency:** Every 12 hours
-- **Method:** @nestjs/schedule
-- **Error Handling:** 3 retries with exponential backoff
-- **Failure Mode:** Preserve last data, log errors
-- **Env Variable:** `SCRAPING_CRON` (default: "0 _/12 _ \* \*")
+- **Frequency:** Co 12 godzin (00:00, 12:00)
+- **Method:** `@nestjs/schedule` decorator `@Cron()`
+- **Timezone:** Europe/Warsaw
+- **Implementation:** `ScraperSchedulerService.handleScrapingCron()`
+- **Process:**
+  1. Log start scraping task
+  2. `scraperService.scrapeWebsite()` - Puppeteer extraction
+  3. `dataService.mapScrapedDataToDto()` - DTO mapping
+  4. `dataService.saveToSupabase()` - UPSERT operation
+  5. Log completion with record count
+- **Error Handling:** Try-catch z detailed logging, zachowanie ostatnich danych
+- **CRON Expression:** `"0 */12 * * *"` (currently `"0 22 * * *"` for testing)
+- **Configuration:** Hardcoded w decoratorze (do zmiany na env var jeśli potrzeba)
 
 ### AI Insights Job
 
@@ -176,8 +218,11 @@ hoslu-scraper/
 
 ### Hosting
 
-- **Frontend:** Render.com Static Site (free)
-- **Scraper:** Render.com Web Service ($7/month)
+- **Frontend:** Render.com Static Site (free) - DO ZAIMPLEMENTOWANIA
+- **Scraper:** Render.com Web Service (Free tier, GitHub auto-deploy) - ZAIMPLEMENTOWANE
+  - Dockerfile build (Puppeteer base image)
+  - Environment variables configured in Render dashboard
+  - Health check: `/health` endpoint
 - **Database:** Supabase Cloud (free tier MVP)
 
 ### Deployment Flow
@@ -194,14 +239,17 @@ hoslu-scraper/
 - `PUBLIC_SUPABASE_URL`
 - `PUBLIC_SUPABASE_ANON_KEY`
 
-**Scraper:**
+**Scraper (ZAIMPLEMENTOWANE):**
 
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `ANTHROPIC_API_KEY`
-- `SCRAPING_CRON`
-- `AI_CRON`
-- `NODE_ENV`
+- `SUPABASE_URL` - Supabase project URL
+- `SUPABASE_KEY` - Service Role Key (bypasses RLS)
+- `PAGE` - Target URL (https://szpitale.lublin.uw.gov.pl/page/...)
+- `PUPPETEER_EXECUTABLE_PATH` - Chrome path for production (`/usr/bin/google-chrome-stable`)
+- `NODE_ENV` - Environment (development/production)
+- `PORT` - Server port (default: 4000)
+- ~~`ANTHROPIC_API_KEY`~~ - DO ZAIMPLEMENTOWANIA (AI insights)
+- ~~`SCRAPING_CRON`~~ - Hardcoded in decorator, not env var yet
+- ~~`AI_CRON`~~ - DO ZAIMPLEMENTOWANIA
 
 ## 9. Monitoring & Observability (MVP)
 
@@ -229,11 +277,12 @@ hoslu-scraper/
 
 ## 10. Testing Strategy (MVP Minimum)
 
-### Scraper
+### Scraper (ZAIMPLEMENTOWANE - bez testów jednostkowych jeszcze)
 
-- Unit tests for Puppeteer parsing logic (critical)
-- Framework: Jest (NestJS built-in)
-- Manual end-to-end before deploy
+- Unit tests dla Puppeteer parsing logic (critical) - DO ZAIMPLEMENTOWANIA
+- Framework: Jest (NestJS built-in) - dostępny ale nieużywany
+- Manual end-to-end przed deploymentem - WYKONANE
+- **Current Status:** Aplikacja działa, brak automated tests
 
 ### Frontend
 
@@ -243,23 +292,28 @@ hoslu-scraper/
 
 ### Integration
 
-- Scraper → Supabase flow
-- RLS policies with test users
-- AI insight generation
+- Scraper → Supabase flow - ZAIMPLEMENTOWANE i DZIAŁA
+  - UPSERT operation z conflict resolution
+  - Service Role Key authentication
+  - Deduplication logic
+- RLS policies with test users - DO ZAIMPLEMENTOWANIA (frontend)
+- AI insight generation - DO ZAIMPLEMENTOWANIA
 
 ## 11. Cost Estimation
 
 ### Monthly Costs (MVP)
 
 ```
-Frontend (Render Static):     $0
-Scraper (Render Starter):     $7
+Frontend (Render Static):     $0    (DO ZAIMPLEMENTOWANIA)
+Scraper (Render Free):        $0    (ZAIMPLEMENTOWANE - free tier)
 Supabase (Free tier):         $0
-Anthropic API:                ~$0.05
+Anthropic API:                ~$0.05 (DO ZAIMPLEMENTOWANIA)
 GitHub (public):              $0
 
-TOTAL: ~$7/month
+TOTAL: ~$0/month (MVP), ~$0.05/month po dodaniu AI
 ```
+
+**Uwaga:** Free tier Render.com ma ograniczenia (sleep po inaktywności, 750h/miesiąc). Możliwy upgrade do Starter ($7/month) jeśli potrzeba 24/7 uptime.
 
 ### Scaling (100-500 users)
 
@@ -271,16 +325,20 @@ TOTAL: ~$7/month
 
 ### Decision Summary
 
-1. **Data Updates:** UPSERT pattern (atomic, preserves IDs)
-2. **Hosting:** Render.com (proven Puppeteer setup)
-3. **Repository:** Separate repos (simpler for MVP)
-4. **Type Sync:** Supabase codegen + manual DTOs
-5. **Puppeteer:** Existing POC setup works on Render
-6. **Error Handling:** 3 retries, logs only (no email)
-7. **AI Cache:** Database table (24h TTL)
-8. **Secrets:** Environment variables only
-9. **Testing:** Minimum - scraper unit tests
-10. **Monitoring:** Render logs only
+1. **Data Updates:** UPSERT pattern (atomic, preserves IDs) - ✅ ZAIMPLEMENTOWANE
+2. **Hosting:** Render.com Free tier (Puppeteer w Dockerze) - ✅ ZAIMPLEMENTOWANE
+3. **Repository:** Separate repos (scrap-app-be + frontend) - ✅ ZAIMPLEMENTOWANE
+4. **Type Sync:** Manual DTOs w scraperze - ✅ ZAIMPLEMENTOWANE (Supabase codegen dla frontendu)
+5. **Puppeteer:** Docker image `ghcr.io/puppeteer/puppeteer:19.7.2` - ✅ ZAIMPLEMENTOWANE
+6. **Error Handling:** Try-catch z detailed logging (no retries yet) - ✅ ZAIMPLEMENTOWANE
+7. **AI Cache:** Database table (24h TTL) - ❌ DO ZAIMPLEMENTOWANIA
+8. **Secrets:** Environment variables (config.env + Render dashboard) - ✅ ZAIMPLEMENTOWANE
+9. **Testing:** Manual e2e testing only (unit tests - TODO) - ⚠️ CZĘŚCIOWO
+10. **Monitoring:** Render logs + `/health` endpoint - ✅ ZAIMPLEMENTOWANE
+11. **UI Components:** shadcn/ui (domyślne, minimalne customizacje) - ✅ DECYZJA
+12. **Accordion:** REZYGNACJA - wszystkie dane widoczne w kartach - ✅ DECYZJA
+13. **Warning Threshold:** 12h zamiast 24h/48h - ✅ DECYZJA
+14. **Priority:** Feature > Design (MVP mindset) - ✅ DECYZJA
 
 ## 13. Future Considerations (Post-MVP)
 
