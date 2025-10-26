@@ -92,10 +92,10 @@ Core table storing scraped hospital bed availability data. Updated via UPSERT ev
 | `id`              | UUID                     | PK, DEFAULT gen_random_uuid() | Primary key                              |
 | `wardName`        | VARCHAR(255)             | NOT NULL                      | Ward name (e.g., "Kardiologia")          |
 | `wardLink`        | TEXT                     | NULLABLE                      | URL to ward details page                 |
-| `district`        | VARCHAR(100)             | NULLABLE                      | District name (e.g., "Lublin")           |
-| `hospitalName`    | VARCHAR(255)             | NOT NULL                      | Hospital name                            |
-| `availablePlaces` | VARCHAR(10)              | NOT NULL, DEFAULT '0'         | Bed count (can be negative for overflow) |
-| `lastUpdated`     | VARCHAR(255)             | NULLABLE                      | UNRELIABLE: timestamp from HTML source   |
+| `district`        | VARCHAR(255)             | NULLABLE                      | District name (e.g., "Lublin")           |
+| `hospitalName`    | VARCHAR(500)             | NOT NULL                      | Hospital name                            |
+| `availablePlaces` | VARCHAR(50)              | NOT NULL, DEFAULT '0'         | Bed count (can be negative for overflow) |
+| `lastUpdated`     | VARCHAR(100)             | NULLABLE                      | UNRELIABLE: timestamp from HTML source   |
 | `scrapedAt`       | TIMESTAMP WITH TIME ZONE | NOT NULL                      | RELIABLE: scraping execution time        |
 | `created_at`      | TIMESTAMP WITH TIME ZONE | DEFAULT NOW()                 | First insertion timestamp                |
 | `updated_at`      | TIMESTAMP WITH TIME ZONE | DEFAULT NOW()                 | Last update (auto-updated by trigger)    |
@@ -376,6 +376,8 @@ SELECT count_unique_wards(); -- e.g., 28
 
 **Use Case**: Monitoring and statistics dashboard
 
+**Implementation Note**: Returns PostgreSQL INTEGER (INT4), not BIGINT. Max value: 2,147,483,647 (sufficient for MVP).
+
 ---
 
 ### 4. `count_unique_hospitals()` → INTEGER
@@ -387,6 +389,8 @@ Returns the count of unique hospital names in the system.
 ```sql
 SELECT count_unique_hospitals(); -- e.g., 15
 ```
+
+**Implementation Note**: Returns PostgreSQL INTEGER (INT4), not BIGINT. Max value: 2,147,483,647 (sufficient for MVP).
 
 **Use Case**: Monitoring and statistics dashboard
 
@@ -421,6 +425,52 @@ SELECT get_total_places_by_ward('Kardiologia'); -- e.g., 27
 **Use Case**: AI insights generation, analytics
 
 **Notes**: Safely handles VARCHAR to INTEGER conversion
+
+---
+
+### 7. `get_system_status()` → JSON
+
+Returns comprehensive system health metrics aggregated from multiple helper functions.
+
+**Usage**:
+
+```sql
+SELECT get_system_status();
+-- Returns: {
+--   "isStale": false,
+--   "lastScrapeTime": "2025-01-24T12:00:00Z",
+--   "hoursSinceLastScrape": 2.5,
+--   "totalWards": 28,
+--   "totalHospitals": 15,
+--   "scrapingSuccessRate30d": 96.50
+-- }
+```
+
+**Use Case**: Single endpoint for GET /api/status, monitoring dashboards
+
+**Implementation**: `20250123000009_add_missing_helper_functions.sql`
+
+---
+
+### 8. `get_unique_districts()` → TABLE (district VARCHAR)
+
+Returns list of unique districts for filter dropdown.
+
+**Usage**:
+
+```sql
+SELECT * FROM get_unique_districts();
+-- Returns:
+-- district
+-- ----------
+-- Biała Podlaska
+-- Lublin
+-- Puławy
+```
+
+**Use Case**: District filter dropdown in frontend, GET /api/wards enhancement
+
+**Implementation**: `20250123000009_add_missing_helper_functions.sql`
 
 ---
 
@@ -519,13 +569,16 @@ export interface AIInsight {
 
 Execute migrations **in order**:
 
-1. `20250123000001_create_user_favorites.sql`
-2. `20250123000002_create_ai_insights.sql`
-3. `20250123000003_create_scraping_logs.sql`
-4. `20250123000004_update_hospital_wards_rls.sql`
-5. `20250123000005_add_search_indexes.sql`
-6. `20250123000006_add_triggers.sql`
-7. `20250123000007_add_helper_functions.sql`
+1. `20250123000000_create_hospital_wards.sql`
+2. `20250123000001_create_user_favorites.sql`
+3. `20250123000002_create_ai_insights.sql`
+4. `20250123000003_create_scraping_logs.sql`
+5. `20250123000004_update_hospital_wards_rls.sql`
+6. `20250123000005_add_search_indexes.sql`
+7. `20250123000006_add_triggers.sql`
+8. `20250123000007_add_helper_functions.sql`
+9. `20250123000008_add_mvp_core_functions.sql`
+10. `20250123000009_add_missing_helper_functions.sql`
 
 ### Deployment Methods
 
@@ -564,17 +617,19 @@ SELECT extname FROM pg_extension WHERE extname = 'pg_trgm';
 
 -- Check triggers exist
 SELECT tgname FROM pg_trigger
-WHERE tgname IN ('trigger_cleanup_orphaned_favorites', 'trigger_ai_insights_updated_at');
--- Expected: 2 triggers
+WHERE tgname IN ('trigger_cleanup_orphaned_favorites', 'trigger_ai_insights_updated_at', 'update_hospital_wards_updated_at');
+-- Expected: 3 triggers
 
 -- Check functions exist
 SELECT routine_name FROM information_schema.routines
 WHERE routine_schema = 'public'
   AND routine_name IN ('is_data_stale', 'get_last_scrape_time',
                        'count_unique_wards', 'count_unique_hospitals',
-                       'calculate_scraping_success_rate', 'get_total_places_by_ward')
+                       'calculate_scraping_success_rate', 'get_total_places_by_ward',
+                       'get_system_status', 'get_unique_districts',
+                       'get_wards_aggregated', 'get_user_favorites_with_stats')
 ORDER BY routine_name;
--- Expected: 6 functions
+-- Expected: 10 functions
 ```
 
 ### Post-Deployment
@@ -823,5 +878,5 @@ Scraper and AI job use **Service Role Key** which completely bypasses RLS, allow
 ---
 
 **Version**: 1.0 (MVP)  
-**Last Updated**: 2025-01-23  
+**Last Updated**: 2025-01-25  
 **Schema Status**: Implementation Ready

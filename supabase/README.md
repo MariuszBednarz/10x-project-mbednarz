@@ -72,7 +72,7 @@ supabase/
    - Audit log for scraping operations
    - Access: Authenticated users (read-only)
 
-### Helper Functions (6)
+### Helper Functions (8)
 
 - `is_data_stale()` - Check if data older than 12 hours
 - `get_last_scrape_time()` - Get latest scraping timestamp
@@ -80,6 +80,8 @@ supabase/
 - `count_unique_hospitals()` - Count unique hospital names
 - `calculate_scraping_success_rate(days)` - Calculate success rate %
 - `get_total_places_by_ward(ward_name)` - Total available places by ward
+- `get_system_status()` - Aggregated system health metrics (JSON)
+- `get_unique_districts()` - List of unique districts for filters
 
 ### Triggers (3)
 
@@ -188,7 +190,7 @@ SELECT
 
 | Date       | Version | Changes                                    |
 | ---------- | ------- | ------------------------------------------ |
-| 2025-01-23 | 1.0     | Initial MVP schema (4 tables, 6 functions) |
+| 2025-01-23 | 1.0     | Initial MVP schema (4 tables, 8 functions) |
 
 ## 📝 Next Steps After Deployment
 
