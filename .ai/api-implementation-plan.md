@@ -68,7 +68,7 @@ src/
 │       │       ├── favorites/
 │       │       │   ├── index.ts      # GET/POST /api/users/me/favorites
 │       │       │   └── [id].ts       # DELETE /api/users/me/favorites/{id}
-│       │       └── index.ts          # DELETE /api/users/me
+│       │       └── index.ts          # GET /api/users/me, DELETE /api/users/me
 │       ├── insights/
 │       │   └── current.ts            # GET /api/insights/current
 │       ├── status.ts                 # GET /api/status
@@ -662,7 +662,52 @@ export const GET: APIRoute = async ({ params, request, locals }) => {
 - Check ward exists first → 404 if not found
 - Validate query params with Zod
 
-### 4.3 GET /api/users/me/favorites (`src/pages/api/users/me/favorites/index.ts`)
+### 4.3 GET /api/users/me (`src/pages/api/users/me/index.ts`)
+
+> **API Contract**: See `api-plan.md` → Section 4.5 (GET /api/users/me)
+
+**Implementation Pattern**:
+
+```typescript
+export const GET: APIRoute = async ({ locals }) => {
+  try {
+    // 1. Authenticate user
+    const user = await getAuthenticatedUser(locals.supabase);
+    if (!user) {
+      return createErrorResponse(401, "UNAUTHORIZED", "Missing or invalid authentication token");
+    }
+
+    // 2. Return user profile
+    return createSuccessResponse(200, {
+      id: user.id,
+      email: user.email,
+      email_confirmed_at: user.email_confirmed_at || null,
+      created_at: user.created_at,
+    });
+  } catch (error: any) {
+    // Handle email not verified error
+    if (isEmailNotVerifiedError(error)) {
+      return createErrorResponse(403, "FORBIDDEN", error.message, undefined, "Please verify your email address");
+    }
+
+    // Log and handle unexpected errors
+    console.error("[GET /api/users/me] Error:", {
+      message: getErrorMessage(error),
+      stack: error?.stack,
+    });
+
+    return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Failed to fetch user profile");
+  }
+};
+```
+
+**Key Implementation Notes**:
+
+- No service layer needed - data comes directly from `getAuthenticatedUser()`
+- Returns only public profile fields (no sensitive data)
+- Used for profile display in frontend
+
+### 4.4 GET /api/users/me/favorites (`src/pages/api/users/me/favorites/index.ts`)
 
 > **API Contract**: See `api-plan.md` → Section 4.2 (GET /api/users/me/favorites)
 
@@ -695,7 +740,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
 };
 ```
 
-### 4.4 POST /api/users/me/favorites (`src/pages/api/users/me/favorites/index.ts`)
+### 4.5 POST /api/users/me/favorites (`src/pages/api/users/me/favorites/index.ts`)
 
 > **API Contract**: See `api-plan.md` → Section 4.2 (POST /api/users/me/favorites)
 
@@ -743,7 +788,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 - Validate `ward_name` with Zod (max 255 chars)
 - Return 201 Created on success
 
-### 4.5 DELETE /api/users/me/favorites/[id] (`src/pages/api/users/me/favorites/[id].ts`)
+### 4.6 DELETE /api/users/me/favorites/[id] (`src/pages/api/users/me/favorites/[id].ts`)
 
 > **API Contract**: See `api-plan.md` → Section 4.2 (DELETE /api/users/me/favorites/{id})
 
@@ -792,7 +837,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
 - Check ownership with `favoriteExists()` → 404 if not found
 - Return 204 No Content (empty body) on success
 
-### 4.6 GET /api/insights/current (`src/pages/api/insights/current.ts`)
+### 4.7 GET /api/insights/current (`src/pages/api/insights/current.ts`)
 
 > **API Contract**: See `api-plan.md` → Section 4.3 (GET /api/insights/current)
 
@@ -826,7 +871,7 @@ export const GET: APIRoute = async ({ locals }) => {
 - Return 204 No Content if no active insight (not an error)
 - Graceful degradation pattern
 
-### 4.7 GET /api/status (`src/pages/api/status.ts`)
+### 4.8 GET /api/status (`src/pages/api/status.ts`)
 
 > **API Contract**: See `api-plan.md` → Section 4.4 (GET /api/status)
 
@@ -856,9 +901,9 @@ export const GET: APIRoute = async ({ locals }) => {
 - Consider caching response for 5 minutes
 - All metrics aggregated by single RPC call
 
-### 4.8 DELETE /api/users/me (`src/pages/api/users/me/index.ts`)
+### 4.9 DELETE /api/users/me (`src/pages/api/users/me/index.ts`)
 
-> **API Contract**: See `api-plan.md` → Section 4.5 (DELETE /api/users/me)
+> **API Contract**: See `api-plan.md` → Section 4.6 (DELETE /api/users/me)
 
 **Implementation Pattern**:
 
@@ -896,9 +941,9 @@ export const DELETE: APIRoute = async ({ locals }) => {
 - Use Supabase Admin SDK (`supabaseAdmin.auth.admin.deleteUser()`)
 - CASCADE DELETE automatic via foreign key
 
-### 4.9 GET /api/logs/scraping (`src/pages/api/logs/scraping.ts`)
+### 4.10 GET /api/logs/scraping (`src/pages/api/logs/scraping.ts`)
 
-> **API Contract**: See `api-plan.md` → Section 4.6 (GET /api/logs/scraping)
+> **API Contract**: See `api-plan.md` → Section 4.7 (GET /api/logs/scraping)
 
 **Implementation Pattern**:
 
@@ -1718,7 +1763,24 @@ This document provides **implementation patterns and code** for building the Hos
 
 ---
 
-**Version**: 1.1  
-**Status**: Implementation Ready  
-**Updated**: 2025-01-25  
+**Version**: 1.2  
+**Status**: ✅ Fully Implemented  
+**Updated**: 2025-10-29  
 **Companion Doc**: `api-plan.md`
+
+---
+
+## Implementation Summary
+
+**All 10 API endpoints implemented:**
+
+1. ✅ GET /api/wards (Section 4.1)
+2. ✅ GET /api/wards/{wardName}/hospitals (Section 4.2)
+3. ✅ GET /api/users/me (Section 4.3)
+4. ✅ GET /api/users/me/favorites (Section 4.4)
+5. ✅ POST /api/users/me/favorites (Section 4.5)
+6. ✅ DELETE /api/users/me/favorites/{id} (Section 4.6)
+7. ✅ GET /api/insights/current (Section 4.7)
+8. ✅ GET /api/status (Section 4.8)
+9. ✅ DELETE /api/users/me (Section 4.9)
+10. ✅ GET /api/logs/scraping (Section 4.10)

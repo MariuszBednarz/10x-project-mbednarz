@@ -578,7 +578,55 @@ apikey: <SUPABASE_ANON_KEY>
 
 ---
 
-### 4.5 User Account Management
+### 4.5 User Profile
+
+#### GET /api/users/me
+
+Get authenticated user's profile information.
+
+**Authentication:** Required
+
+**Request Example:**
+
+```http
+GET /api/users/me
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Response Success (200 OK):**
+
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "email_confirmed_at": "2025-10-29T10:00:00Z",
+  "created_at": "2025-10-29T10:00:00Z"
+}
+```
+
+**Response Errors:**
+
+| Code | Description                                 |
+| ---- | ------------------------------------------- |
+| 401  | Unauthorized - Invalid or missing JWT token |
+| 403  | Forbidden - Email not verified              |
+| 500  | Internal Server Error                       |
+
+**Business Logic:**
+
+- Returns basic user profile information from `auth.users`
+- Email confirmation status included for UI display
+- Used for profile page and user context display
+
+**Implementation Note:**
+
+- Retrieves user via `getAuthenticatedUser(locals.supabase)`
+- No additional database queries needed
+- See implementation in `api-implementation-plan.md` → Section 4.3
+
+---
+
+### 4.6 User Account Management
 
 #### DELETE /api/users/me
 
@@ -589,9 +637,8 @@ Delete current user account and all associated data (GDPR compliance).
 **Request Example:**
 
 ```http
-POST /rest/v1/rpc/delete_user_account
+DELETE /api/users/me
 Authorization: Bearer <JWT_TOKEN>
-apikey: <SUPABASE_ANON_KEY>
 ```
 
 **Response Success (204 No Content):**
@@ -619,11 +666,11 @@ apikey: <SUPABASE_ANON_KEY>
 
 - Use Supabase Admin SDK with Service Role Key
 - CASCADE DELETE removes user_favorites automatically
-- See implementation in `api-implementation-plan.md` → Section 4.8
+- See implementation in `api-implementation-plan.md` → Section 4.9
 
 ---
 
-### 4.6 Scraping Logs (Monitoring)
+### 4.7 Scraping Logs (Monitoring)
 
 #### GET /api/logs/scraping
 
@@ -1220,25 +1267,25 @@ Warning: 299 - "This API version will be deprecated on 2026-07-24"
 ### Phase 1: Core Functionality (MVP)
 
 1. ✅ **Authentication** - Supabase Auth (sign up, login, email verification)
-2. ✅ **Ward List** - GET wards with aggregation and search
-3. ✅ **Hospital List** - GET hospitals by ward with filtering
-4. ✅ **Favorites** - POST/DELETE favorites with optimistic updates
-5. ✅ **AI Insights** - GET current insight with graceful degradation
-6. ✅ **Data Freshness** - Warning banner using helper functions
+2. ✅ **Ward List** - GET /api/wards with aggregation and search
+3. ✅ **Hospital List** - GET /api/wards/{wardName}/hospitals with filtering
+4. ✅ **User Profile** - GET /api/users/me (profile information)
+5. ✅ **Favorites** - GET/POST/DELETE /api/users/me/favorites
+6. ✅ **AI Insights** - GET /api/insights/current with graceful degradation
+7. ✅ **System Status** - GET /api/status (data freshness, metrics)
+8. ✅ **Scraping Logs** - GET /api/logs/scraping (monitoring)
+9. ✅ **Account Deletion** - DELETE /api/users/me (GDPR compliance)
 
 ### Phase 2: Enhanced Features (Post-MVP)
 
-7. ⏳ **Status Dashboard** - GET /api/status (admin metrics aggregation)
-8. ⏳ **Scraping Logs** - GET logs for monitoring dashboard
-9. ⏳ **Account Deletion** - DELETE user account (GDPR)
 10. ⏳ **District Autocomplete** - GET unique districts for filter dropdown
 11. ⏳ **Advanced Search** - Fuzzy matching with relevance scoring
+12. ⏳ **Batch Operations** - Bulk add/remove favorites
 
 ### Phase 3: Optimization (Future)
 
-12. ⏳ **Rate Limiting** - Implement per-user limits with Redis
-13. ⏳ **Response Caching** - Add ETags and conditional requests
-14. ⏳ **Batch Operations** - Bulk add/remove favorites
+13. ⏳ **Rate Limiting** - Implement per-user limits with Redis
+14. ⏳ **Response Caching** - Add ETags and conditional requests
 15. ⏳ **WebSocket Support** - Real-time updates via Supabase Realtime
 
 ---
@@ -1307,7 +1354,22 @@ This document defines the **REST API contract** for HosLU MVP - the HTTP interfa
 
 ---
 
-**Version:** 1.1  
-**Last Updated:** 2025-01-25  
-**Status:** Ready for Implementation  
+**Version:** 1.2  
+**Last Updated:** 2025-10-29  
+**Status:** ✅ Implemented & Deployed  
 **Companion Doc:** `api-implementation-plan.md`
+
+---
+
+## API Endpoints Summary (10 total)
+
+1. GET /api/wards
+2. GET /api/wards/{wardName}/hospitals
+3. GET /api/users/me
+4. GET /api/users/me/favorites
+5. POST /api/users/me/favorites
+6. DELETE /api/users/me/favorites/{id}
+7. GET /api/insights/current
+8. GET /api/status
+9. GET /api/logs/scraping
+10. DELETE /api/users/me
