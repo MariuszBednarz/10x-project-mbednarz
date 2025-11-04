@@ -1,0 +1,124 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Separator } from "../components/ui/separator";
+---
+
+<Layout title="O aplikacji - HosLU">
+  <div class="min-h-screen bg-background">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold">O aplikacji</h1>
+        <p class="text-muted-foreground mt-2">Dowiedz się więcej o projekcie HosLU (DoSzpitala)</p>
+      </div>
+
+      <div class="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Jak to działa?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>
+              HosLU (DoSzpitala) to aplikacja, która pomaga w czasie rzeczywistym monitorować dostępność miejsc w
+              szpitalach województwa lubelskiego.
+            </p>
+            <p>
+              Dane są automatycznie pobierane z oficjalnych źródeł i aktualizowane regularnie, aby zapewnić jak
+              najświeższe informacje o dostępności łóżek szpitalnych.
+            </p>
+            <p>Aplikacja umożliwia:</p>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+              <li>Przeglądanie listy oddziałów szpitalnych</li>
+              <li>Sprawdzanie dostępności miejsc w poszczególnych szpitalach</li>
+              <li>Zapisywanie ulubionych oddziałów dla szybkiego dostępu</li>
+              <li>Filtrowanie i wyszukiwanie oddziałów oraz szpitali</li>
+              <li>Otrzymywanie inteligentnych insightów AI o dostępności miejsc</li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Źródło danych</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>
+              Dane pochodzą z oficjalnego systemu monitorowania dostępności łóżek szpitalnych w województwie lubelskim.
+            </p>
+            <p>
+              Link do źródła:{" "}
+              <a
+                href="https://appimeri.um.lublin.pl/mapy/szpitale/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-primary hover:underline"
+              >
+                System monitorowania - Urząd Marszałkowski w Lublinie
+              </a>
+            </p>
+            <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+              <p class="text-sm">
+                <strong>Uwaga:</strong> Dane mają charakter informacyjny. W przypadku pilnej potrzeby zawsze kontaktuj się
+                bezpośrednio ze szpitalem lub dzwoń pod numer 112.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Przetwarzanie danych osobowych (RODO)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>Aplikacja przetwarza wyłącznie niezbędne dane osobowe:</p>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+              <li>Adres email (wymagany do rejestracji i logowania)</li>
+              <li>Hasło (przechowywane w formie zaszyfrowanej)</li>
+              <li>Informacje o ulubionych oddziałach (przypisane do konta)</li>
+            </ul>
+            <p>
+              Szczegółowe informacje znajdziesz w{" "}
+              <a href="/polityka-prywatnosci" class="text-primary hover:underline"> Polityce Prywatności </a>.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Kontakt</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>Masz pytania, sugestie lub znalazłeś błąd?</p>
+            <p>
+              Skontaktuj się z nami:{" "}
+              <a href="mailto:kontakt@hoslu.pl" class="text-primary hover:underline"> kontakt@hoslu.pl </a>
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Technologia</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>Aplikacja została stworzona z wykorzystaniem nowoczesnych technologii:</p>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+              <li>Astro 5 - framework webowy</li>
+              <li>React 19 - komponenty interaktywne</li>
+              <li>Tailwind CSS 4 - stylowanie</li>
+              <li>Supabase - baza danych i autoryzacja</li>
+              <li>shadcn/ui - komponenty interfejsu</li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Separator />
+
+        <div class="text-center text-sm text-muted-foreground">
+          <p>© 2025 HosLU (DoSzpitala). Wszystkie prawa zastrzeżone.</p>
+          <p class="mt-2">Projekt stworzony z myślą o poprawie dostępności informacji medycznych.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

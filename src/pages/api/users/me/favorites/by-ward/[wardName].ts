@@ -1,35 +1,34 @@
 /**
- * DELETE /api/users/me/favorites/{id}
+ * DELETE /api/users/me/favorites/by-ward/{wardName}
  *
- * Remove ward from user's favorites
+ * Remove ward from user's favorites by ward name
  *
- * @see .ai/api-implementation-plan.md Section 4.6
- * @see .ai/api-plan.md Section 4.2
+ * @see .ai/ui-plan.md Section 12.3 - Clean solution without migration
  */
 
 import type { APIRoute } from "astro";
 import { FavoritesService } from "@/lib/services/favorites.service";
 import { createErrorResponse } from "@/lib/utils/api-response";
-import { getAuthenticatedUser, isValidUUID } from "@/lib/utils/auth";
+import { getAuthenticatedUser } from "@/lib/utils/auth";
 import { isEmailNotVerifiedError, getErrorMessage } from "@/lib/utils/error-handler";
 
 export const prerender = false;
 
 /**
- * DELETE /api/users/me/favorites/{id}
+ * DELETE /api/users/me/favorites/by-ward/{wardName}
  *
- * Remove favorite by ID
+ * Remove favorite by ward name (natural identifier from UI)
  *
  * Path Parameters:
- * - id (required): string (UUID) - Favorite ID to delete
+ * - wardName (required): string - Ward name to remove from favorites (URL-encoded)
  *
  * Response: 204 No Content (empty body)
  *
  * Errors:
- * - 400 BAD_REQUEST: Invalid favorite ID format
+ * - 400 BAD_REQUEST: Missing ward name
  * - 401 UNAUTHORIZED: Missing or invalid authentication token
  * - 403 FORBIDDEN: Email not verified
- * - 404 NOT_FOUND: Favorite not found or does not belong to user
+ * - 404 NOT_FOUND: Favorite not found
  * - 500 INTERNAL_SERVER_ERROR: Unexpected server error
  */
 export const DELETE: APIRoute = async ({ params, locals }) => {
@@ -40,36 +39,25 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
       return createErrorResponse(401, "UNAUTHORIZED", "Missing or invalid authentication token");
     }
 
-    // 2. Validate favorite ID parameter
-    const favoriteId = params.id;
+    // 2. Validate ward name parameter
+    const wardName = params.wardName;
 
-    if (!favoriteId) {
-      return createErrorResponse(400, "BAD_REQUEST", "Favorite ID is required");
+    if (!wardName) {
+      return createErrorResponse(400, "BAD_REQUEST", "Ward name is required");
     }
 
-    // Validate UUID format
-    // ⚠️ CRITICAL: Always validate UUID format before database query
-    if (!isValidUUID(favoriteId)) {
-      return createErrorResponse(
-        400,
-        "BAD_REQUEST",
-        "Invalid favorite ID format",
-        undefined,
-        "ID must be a valid UUID"
-      );
-    }
+    // Decode URL-encoded ward name (e.g., "Chirurgia%20Og%C3%B3lna" → "Chirurgia Ogólna")
+    const decodedWardName = decodeURIComponent(wardName);
 
     // 3. Call service
     const favoritesService = new FavoritesService(locals.supabase);
 
-    // Check if favorite exists and belongs to user (404 handling)
-    const exists = await favoritesService.favoriteExists(user.id, favoriteId);
-    if (!exists) {
-      return createErrorResponse(404, "NOT_FOUND", "Favorite not found or does not belong to you");
-    }
+    // Remove the favorite by ward name
+    const deleted = await favoritesService.removeFavoriteByWardName(user.id, decodedWardName);
 
-    // Remove the favorite
-    await favoritesService.removeFavorite(user.id, favoriteId);
+    if (!deleted) {
+      return createErrorResponse(404, "NOT_FOUND", "Favorite not found");
+    }
 
     // 4. Return 204 No Content (empty body)
     return new Response(null, { status: 204 });
@@ -80,8 +68,8 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     }
 
     // Log and handle unexpected errors
-    console.error(`[DELETE /api/users/me/favorites/${params.id}] Error:`, {
-      favoriteId: params.id,
+    console.error(`[DELETE /api/users/me/favorites/by-ward/${params.wardName}] Error:`, {
+      wardName: params.wardName,
       message: getErrorMessage(error),
       stack: error?.stack,
     });

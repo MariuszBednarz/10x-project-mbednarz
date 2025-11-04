@@ -1,0 +1,10 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { WardsList } from "@/components/wards/WardsList";
+
+export const prerender = false;
+---
+
+<Layout title="Lista Oddziałów">
+  <WardsList client:load />
+</Layout>

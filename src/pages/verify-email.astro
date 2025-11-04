@@ -1,0 +1,24 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { VerifyEmail as VerifyEmailComponent } from "../components/auth/VerifyEmail";
+
+// Get email from query params if available
+const url = new URL(Astro.request.url);
+const email = url.searchParams.get("email") || undefined;
+---
+
+<Layout title="Weryfikacja email - HosLU">
+  <div class="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-primary">DoSzpitala</h1>
+      </div>
+
+      <VerifyEmailComponent email={email} client:load />
+
+      <div class="text-center mt-4">
+        <a href="/login" class="text-sm text-primary hover:underline font-medium"> ← Powrót do logowania </a>
+      </div>
+    </div>
+  </div>
+</Layout>

@@ -424,24 +424,23 @@ Prefer: return=representation
 
 ---
 
-#### DELETE /api/users/me/favorites/{id}
+#### DELETE /api/users/me/favorites/by-ward/{wardName}
 
-Remove a ward from user's favorites.
+Remove a ward from user's favorites by ward name.
 
 **Authentication:** Required
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description        |
-| --------- | ---- | -------- | ------------------ |
-| `id`      | uuid | Yes      | Favorite record ID |
+| Parameter  | Type   | Required | Description                       |
+| ---------- | ------ | -------- | --------------------------------- |
+| `wardName` | string | Yes      | Ward name to remove (URL-encoded) |
 
 **Request Example:**
 
 ```http
-DELETE /rest/v1/user_favorites?id=eq.uuid-here
+DELETE /api/users/me/favorites/by-ward/Kardiologia
 Authorization: Bearer <JWT_TOKEN>
-apikey: <SUPABASE_ANON_KEY>
 ```
 
 **Response Success (204 No Content):**
@@ -452,22 +451,24 @@ apikey: <SUPABASE_ANON_KEY>
 
 **Response Errors:**
 
-| Code | Description                                  |
-| ---- | -------------------------------------------- |
-| 401  | Unauthorized - Invalid or missing JWT token  |
-| 403  | Forbidden - Favorite belongs to another user |
-| 404  | Not Found - Favorite ID does not exist       |
-| 500  | Internal Server Error                        |
+| Code | Description                                 |
+| ---- | ------------------------------------------- |
+| 400  | Bad Request - Missing ward name             |
+| 401  | Unauthorized - Invalid or missing JWT token |
+| 403  | Forbidden - Email not verified              |
+| 404  | Not Found - Favorite not found              |
+| 500  | Internal Server Error                       |
 
 **Business Logic:**
 
+- Uses ward name as natural identifier (no need for UUID lookup)
 - RLS policy ensures user can only delete their own favorites
-- Idempotent operation (deleting non-existent ID returns 404)
+- Idempotent operation (deleting non-existent favorite returns 404)
 - No cascade effects (favorites are leaf nodes)
 
 **Validation:**
 
-- `id`: Must be valid UUID format
+- `wardName`: Must be URL-encoded (e.g., "Chirurgia Ogólna" → "Chirurgia%20Og%C3%B3lna")
 
 ---
 
@@ -1368,7 +1369,7 @@ This document defines the **REST API contract** for HosLU MVP - the HTTP interfa
 3. GET /api/users/me
 4. GET /api/users/me/favorites
 5. POST /api/users/me/favorites
-6. DELETE /api/users/me/favorites/{id}
+6. DELETE /api/users/me/favorites/by-ward/{wardName}
 7. GET /api/insights/current
 8. GET /api/status
 9. GET /api/logs/scraping

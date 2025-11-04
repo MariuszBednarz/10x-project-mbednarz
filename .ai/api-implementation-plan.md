@@ -1,5 +1,9 @@
 # REST API Implementation Plan - HosLU MVP
 
+> **✅ IMPLEMENTATION STATUS**: All 10 API endpoints, 6 services, and 5 validation schemas have been fully implemented.  
+> **📋 NEXT PHASE**: Testing, database functions deployment, and production deployment.  
+> **Last Updated**: 2025-10-29
+
 ## Table of Contents
 
 1. [Overview](#1-overview)
@@ -19,6 +23,24 @@
 This document provides implementation patterns, code examples, and technical details for building the HosLU REST API.
 
 > **Note**: For API contract (HTTP interface, request/response formats), see `api-plan.md`
+
+### Current Implementation Status
+
+**✅ COMPLETED (All Core Features)**:
+
+- All 10 API endpoints (wards, hospitals, favorites, insights, status, logs, user profile)
+- All 6 services with business logic
+- All 5 validation schemas (Zod)
+- All 4 utility modules (response, error, auth, type-guards)
+- Complete error handling patterns
+- Authentication and authorization helpers
+
+**📋 IN PROGRESS (Testing & Deployment)**:
+
+- Unit tests for services
+- Integration testing
+- Database functions deployment
+- Production environment setup
 
 ### Technology Stack
 
@@ -67,7 +89,8 @@ src/
 │       │   └── me/
 │       │       ├── favorites/
 │       │       │   ├── index.ts      # GET/POST /api/users/me/favorites
-│       │       │   └── [id].ts       # DELETE /api/users/me/favorites/{id}
+│       │       │   └── by-ward/
+│       │       │       └── [wardName].ts  # DELETE /api/users/me/favorites/by-ward/{wardName}
 │       │       └── index.ts          # GET /api/users/me, DELETE /api/users/me
 │       ├── insights/
 │       │   └── current.ts            # GET /api/insights/current
@@ -280,15 +303,10 @@ export class FavoritesService {
   async addFavorite(userId: string, command: AddFavoriteCommand): Promise<UserFavoriteDTO>;
 
   /**
-   * Remove favorite by ID
-   * Deletes from user_favorites table with RLS check
+   * Remove favorite by ward name
+   * Deletes from user_favorites table by ward name (natural identifier)
    */
-  async removeFavorite(userId: string, favoriteId: string): Promise<void>;
-
-  /**
-   * Check if favorite exists and belongs to user
-   */
-  async favoriteExists(userId: string, favoriteId: string): Promise<boolean>;
+  async removeFavoriteByWardName(userId: string, wardName: string): Promise<boolean>;
 }
 ```
 
@@ -349,14 +367,21 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
   - Handle duplicate error (code: 23505) → return 409 Conflict
   - RLS policy enforces `user_id` matches authenticated user
 
-- **Remove Favorite**:
+- **Remove Favorite by Ward Name**:
 
   ```typescript
-  const { error } = await supabase.from("user_favorites").delete().eq("id", favoriteId).eq("user_id", userId); // Ensures user owns the favorite
+  const { error, count } = await supabase
+    .from("user_favorites")
+    .delete({ count: "exact" })
+    .eq("user_id", userId)
+    .eq("ward_name", wardName);
+
+  return count !== null && count > 0;
   ```
 
-  - Return 404 if favorite doesn't exist or doesn't belong to user
+  - Returns `true` if deleted, `false` if not found (for 404 handling)
   - RLS policy provides additional protection
+  - Uses ward name as natural identifier (no UUID lookup needed)
 
 **Error Handling**:
 
@@ -788,9 +813,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
 - Validate `ward_name` with Zod (max 255 chars)
 - Return 201 Created on success
 
-### 4.6 DELETE /api/users/me/favorites/[id] (`src/pages/api/users/me/favorites/[id].ts`)
+### 4.6 DELETE /api/users/me/favorites/by-ward/[wardName] (`src/pages/api/users/me/favorites/by-ward/[wardName].ts`)
 
-> **API Contract**: See `api-plan.md` → Section 4.2 (DELETE /api/users/me/favorites/{id})
+> **API Contract**: See `api-plan.md` → Section 4.2 (DELETE /api/users/me/favorites/by-ward/{wardName})
 
 **Implementation Pattern**:
 
@@ -802,30 +827,26 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
       return createErrorResponse(401, "UNAUTHORIZED", "Missing or invalid authentication token");
     }
 
-    const favoriteId = params.id;
-    if (!favoriteId) {
-      return createErrorResponse(400, "BAD_REQUEST", "Favorite ID is required");
+    const wardName = params.wardName;
+    if (!wardName) {
+      return createErrorResponse(400, "BAD_REQUEST", "Ward name is required");
     }
 
-    // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(favoriteId)) {
-      return createErrorResponse(400, "BAD_REQUEST", "Invalid favorite ID format");
-    }
+    // Decode URL-encoded ward name
+    const decodedWardName = decodeURIComponent(wardName);
 
     const favoritesService = new FavoritesService(locals.supabase);
 
-    // Check if favorite exists and belongs to user
-    const exists = await favoritesService.favoriteExists(user.id, favoriteId);
-    if (!exists) {
-      return createErrorResponse(404, "NOT_FOUND", "Favorite not found or does not belong to you");
-    }
+    // Remove favorite by ward name
+    const deleted = await favoritesService.removeFavoriteByWardName(user.id, decodedWardName);
 
-    await favoritesService.removeFavorite(user.id, favoriteId);
+    if (!deleted) {
+      return createErrorResponse(404, "NOT_FOUND", "Favorite not found");
+    }
 
     return new Response(null, { status: 204 });
   } catch (error) {
-    console.error(`[DELETE /api/users/me/favorites/${params.id}] Error:`, error);
+    console.error(`[DELETE /api/users/me/favorites/by-ward/${params.wardName}] Error:`, error);
     return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Failed to remove favorite");
   }
 };
@@ -833,9 +854,11 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
 
 **Key Implementation Notes**:
 
-- Validate UUID format with regex before DB query
-- Check ownership with `favoriteExists()` → 404 if not found
+- ⚠️ **CRITICAL**: Use `decodeURIComponent(wardName)` for URL-encoded names
+- No UUID validation needed - uses ward name directly
+- Service returns boolean to indicate if deletion occurred (404 handling)
 - Return 204 No Content (empty body) on success
+- Zero migration required - uses existing `ward_name` column
 
 ### 4.7 GET /api/insights/current (`src/pages/api/insights/current.ts`)
 
@@ -1414,7 +1437,7 @@ describe("GET /api/wards", () => {
    - POST /api/users/me/favorites → creates favorite
    - POST duplicate → returns 409 Conflict
    - GET /api/users/me/favorites → shows created favorite
-   - DELETE /api/users/me/favorites/{id} → removes favorite
+   - DELETE /api/users/me/favorites/by-ward/{wardName} → removes favorite (URL-encoded)
 
 4. **Error Handling**:
    - Invalid UUID → 400 error
@@ -1440,63 +1463,71 @@ DELETE FROM user_favorites WHERE user_id != 'user-uuid-here';
 
 ## 9. Implementation Checklist
 
-### Phase 1: Foundation (Week 1)
+### Phase 1: Foundation ✅ COMPLETED
 
-- [ ] **Project Structure**
-  - [ ] Create directory structure
-  - [ ] Set up validation schemas (common, wards, hospitals, favorites)
-  - [ ] Create utility modules (api-response, error-handler, auth)
+- [x] **Project Structure**
+  - [x] Create directory structure
+  - [x] Set up validation schemas (common, wards, hospitals, favorites, logs)
+  - [x] Create utility modules (api-response, error-handler, auth, type-guards)
 
-- [ ] **Services Layer**
-  - [ ] Implement `WardsService`
-  - [ ] Implement `HospitalsService`
-  - [ ] Implement `FavoritesService`
-  - [ ] Write unit tests for services
+- [x] **Services Layer**
+  - [x] Implement `WardsService`
+  - [x] Implement `HospitalsService`
+  - [x] Implement `FavoritesService`
+  - [x] Implement `InsightsService`
+  - [x] Implement `StatusService`
+  - [x] Implement `LogsService`
+  - [ ] Write unit tests for services (TODO)
 
-### Phase 2: Core Endpoints (Week 2)
+### Phase 2: Core Endpoints ✅ COMPLETED
 
-- [ ] **Wards Endpoints**
-  - [ ] GET /api/wards
-  - [ ] GET /api/wards/[wardName]/hospitals
-  - [ ] Test with Postman/Insomnia
-  - [ ] Verify RLS enforcement
+- [x] **Wards Endpoints**
+  - [x] GET /api/wards
+  - [x] GET /api/wards/[wardName]/hospitals
+  - [ ] Test with Postman/Insomnia (TODO)
+  - [ ] Verify RLS enforcement (TODO)
 
-- [ ] **Favorites Endpoints**
-  - [ ] GET /api/users/me/favorites
-  - [ ] POST /api/users/me/favorites
-  - [ ] DELETE /api/users/me/favorites/[id]
-  - [ ] Test CRUD operations
-  - [ ] Test duplicate handling (409)
+- [x] **Favorites Endpoints**
+  - [x] GET /api/users/me/favorites
+  - [x] POST /api/users/me/favorites
+  - [x] DELETE /api/users/me/favorites/by-ward/[wardName]
+  - [ ] Test CRUD operations (TODO)
+  - [ ] Test duplicate handling (409) (TODO)
+  - [ ] Test URL encoding for ward names (TODO)
 
-### Phase 3: MVP Finalization (Week 3)
+### Phase 3: MVP Features ✅ COMPLETED
 
-- [ ] **AI Insights (Optional)**
-  - [ ] Implement `InsightsService`
-  - [ ] GET /api/insights/current
-  - [ ] Test graceful degradation (no insight)
+- [x] **AI Insights**
+  - [x] Implement `InsightsService`
+  - [x] GET /api/insights/current
+  - [ ] Test graceful degradation (no insight) (TODO)
+
+- [x] **User Profile**
+  - [x] GET /api/users/me
+  - [x] Implement user profile endpoint
 
 - [ ] **Integration Testing**
-  - [ ] Test complete user flows
-  - [ ] Test RLS enforcement
-  - [ ] Test data freshness warning banner
+  - [ ] Test complete user flows (TODO)
+  - [ ] Test RLS enforcement (TODO)
+  - [ ] Test data freshness warning banner (TODO)
 
-### Phase 4: Post-MVP Enhancements
+### Phase 4: Admin & Monitoring Features ✅ COMPLETED
 
-- [ ] **Admin Dashboard**
-  - [ ] Implement `StatusService`
-  - [ ] GET /api/status (aggregated metrics)
-  - [ ] Implement `LogsService`
-  - [ ] GET /api/logs/scraping
+- [x] **Admin Dashboard**
+  - [x] Implement `StatusService`
+  - [x] GET /api/status (aggregated metrics)
+  - [x] Implement `LogsService`
+  - [x] GET /api/logs/scraping
 
-- [ ] **User Management**
-  - [ ] DELETE /api/users/me (GDPR)
-  - [ ] Test CASCADE DELETE of favorites
+- [x] **User Management**
+  - [x] DELETE /api/users/me (GDPR compliance)
+  - [ ] Test CASCADE DELETE of favorites (TODO)
 
 - [ ] **Advanced Features**
-  - [ ] District filtering with `get_unique_districts()`
-  - [ ] Advanced search improvements
+  - [ ] District filtering with `get_unique_districts()` (Post-MVP)
+  - [ ] Advanced search improvements (Post-MVP)
 
-### Phase 5: Deployment & Monitoring
+### Phase 5: Deployment & Monitoring (IN PROGRESS)
 
 - [ ] **Deployment**
   - [ ] Configure environment variables in Render
@@ -1623,17 +1654,20 @@ const wardName = decodeURIComponent(params.wardName || "");
 - Frontend uses `PUBLIC_SUPABASE_ANON_KEY`
 - Never import `SUPABASE_SERVICE_ROLE_KEY` in client-side code
 
-### Pitfall 4: Not validating UUID format
+### Pitfall 4: Using internal UUIDs as API identifiers
 
-**Problem**: Passing non-UUID to database causes cryptic errors.
+**Problem**: Frontend needs to fetch and cache UUID mappings for natural identifiers (e.g., ward names).
 
-**Solution**:
+**Solution**: Use natural identifiers (ward names) in API endpoints instead of internal database UUIDs.
+
+**Example**:
 
 ```typescript
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-if (!uuidRegex.test(id)) {
-  return createErrorResponse(400, "BAD_REQUEST", "Invalid ID format");
-}
+// ❌ BAD: Requires UUID lookup
+DELETE / api / users / me / favorites / { uuid };
+
+// ✅ GOOD: Uses natural identifier
+DELETE / api / users / me / favorites / by - ward / { wardName };
 ```
 
 ### Pitfall 5: Returning 500 for user errors
@@ -1701,23 +1735,39 @@ REDIS_URL=redis://...  # For rate limiting
 
 ## 13. Success Criteria
 
-The implementation is complete when:
+### ✅ Implementation Complete (Core Features)
 
-✅ All endpoints return correct status codes  
-✅ RLS policies enforce authorization  
-✅ Input validation catches all invalid inputs  
-✅ Error responses follow standard format  
-✅ Unit tests cover services (>80% coverage)  
-✅ Integration tests cover critical flows  
-✅ Manual testing passes all scenarios  
-✅ API documentation is up to date  
-✅ Production deployment succeeds  
-✅ No Service Role Key leaks  
-✅ CORS configured correctly  
-✅ Email verification enforced  
-✅ Pagination works correctly  
-✅ Search returns relevant results  
-✅ Favorites sync with database changes
+- ✅ All 10 endpoints implemented with correct structure
+- ✅ All 6 services implemented with business logic
+- ✅ All 5 validation schemas implemented with Zod
+- ✅ All 4 utility modules implemented (response, error, auth, type-guards)
+- ✅ Error responses follow standard format
+- ✅ API documentation is up to date
+- ✅ No Service Role Key leaks (only used in backend)
+- ✅ Email verification enforced in `getAuthenticatedUser()`
+- ✅ URL encoding handled correctly (ward names)
+- ✅ Natural identifiers used in DELETE endpoint
+
+### 📋 Testing Required (Next Phase)
+
+- [ ] All endpoints return correct status codes (manual testing)
+- [ ] RLS policies enforce authorization (database testing)
+- [ ] Input validation catches all invalid inputs (unit tests)
+- [ ] Unit tests cover services (>80% coverage)
+- [ ] Integration tests cover critical flows
+- [ ] Manual testing passes all scenarios
+- [ ] Pagination works correctly
+- [ ] Search returns relevant results
+- [ ] Favorites sync with database changes
+
+### 🚀 Deployment Required (Next Phase)
+
+- [ ] Production deployment succeeds
+- [ ] CORS configured correctly
+- [ ] Environment variables configured
+- [ ] Database functions deployed
+- [ ] RLS policies enabled
+- [ ] Monitoring and logging set up
 
 ---
 
@@ -1772,15 +1822,88 @@ This document provides **implementation patterns and code** for building the Hos
 
 ## Implementation Summary
 
-**All 10 API endpoints implemented:**
+### ✅ All 10 API Endpoints Implemented
 
 1. ✅ GET /api/wards (Section 4.1)
+   - File: `src/pages/api/wards/index.ts`
+   - Service: `WardsService`
+   - Validation: `validateWardsQuery`
+
 2. ✅ GET /api/wards/{wardName}/hospitals (Section 4.2)
+   - File: `src/pages/api/wards/[wardName]/hospitals.ts`
+   - Service: `HospitalsService`
+   - Validation: `validateHospitalsQuery`
+
 3. ✅ GET /api/users/me (Section 4.3)
+   - File: `src/pages/api/users/me/index.ts`
+   - No service layer (direct auth helper)
+   - Returns user profile data
+
 4. ✅ GET /api/users/me/favorites (Section 4.4)
+   - File: `src/pages/api/users/me/favorites/index.ts`
+   - Service: `FavoritesService`
+   - No validation (uses default pagination)
+
 5. ✅ POST /api/users/me/favorites (Section 4.5)
-6. ✅ DELETE /api/users/me/favorites/{id} (Section 4.6)
+   - File: `src/pages/api/users/me/favorites/index.ts`
+   - Service: `FavoritesService`
+   - Validation: `validateAddFavoriteCommand`
+
+6. ✅ DELETE /api/users/me/favorites/by-ward/{wardName} (Section 4.6)
+   - File: `src/pages/api/users/me/favorites/by-ward/[wardName].ts`
+   - Service: `FavoritesService.removeFavoriteByWardName()`
+   - Uses natural identifier (ward name) instead of UUID
+
 7. ✅ GET /api/insights/current (Section 4.7)
+   - File: `src/pages/api/insights/current.ts`
+   - Service: `InsightsService`
+   - Graceful degradation (204 if no insight)
+
 8. ✅ GET /api/status (Section 4.8)
+   - File: `src/pages/api/status.ts`
+   - Service: `StatusService`
+   - Aggregates system health metrics
+
 9. ✅ DELETE /api/users/me (Section 4.9)
+   - File: `src/pages/api/users/me/index.ts`
+   - Uses Supabase Admin API
+   - CASCADE deletes favorites
+
 10. ✅ GET /api/logs/scraping (Section 4.10)
+    - File: `src/pages/api/logs/scraping.ts`
+    - Service: `LogsService`
+    - Validation: `validateScrapingLogsQuery`
+
+### ✅ All 6 Services Implemented
+
+1. ✅ `WardsService` - `src/lib/services/wards.service.ts`
+2. ✅ `HospitalsService` - `src/lib/services/hospitals.service.ts`
+3. ✅ `FavoritesService` - `src/lib/services/favorites.service.ts`
+4. ✅ `InsightsService` - `src/lib/services/insights.service.ts`
+5. ✅ `StatusService` - `src/lib/services/status.service.ts`
+6. ✅ `LogsService` - `src/lib/services/logs.service.ts`
+
+### ✅ All 5 Validation Schemas Implemented
+
+1. ✅ `common.schema.ts` - Pagination, UUID, Ward name
+2. ✅ `wards.schema.ts` - Ward list queries
+3. ✅ `hospitals.schema.ts` - Hospital list queries
+4. ✅ `favorites.schema.ts` - Add favorite command
+5. ✅ `logs.schema.ts` - Scraping logs queries
+
+### ✅ All 4 Utility Modules Implemented
+
+1. ✅ `api-response.ts` - Standardized response helpers
+2. ✅ `error-handler.ts` - Error type guards and helpers
+3. ✅ `auth.ts` - Authentication helper
+4. ✅ `type-guards.ts` - Type checking utilities
+
+### 📋 Next Steps (Testing & Deployment)
+
+- [ ] Write unit tests for all services
+- [ ] Perform integration testing with Postman/Insomnia
+- [ ] Test RLS enforcement manually
+- [ ] Test error scenarios (401, 403, 404, 409, 500)
+- [ ] Configure production environment variables
+- [ ] Deploy to production
+- [ ] Set up monitoring and logging

@@ -1,0 +1,20 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { HospitalsList } from "@/components/wards/HospitalsList";
+
+interface Props {
+  wardName: string;
+}
+
+const { wardName } = Astro.params;
+
+if (!wardName) {
+  return Astro.redirect("/wards");
+}
+
+const decodedWardName = decodeURIComponent(wardName);
+---
+
+<Layout title={`Szpitale - ${decodedWardName}`}>
+  <HospitalsList wardName={decodedWardName} client:load />
+</Layout>

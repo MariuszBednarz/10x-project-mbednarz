@@ -1,0 +1,102 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Separator } from "../components/ui/separator";
+---
+
+<Layout title="Regulamin - HosLU">
+  <div class="min-h-screen bg-background">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold">Regulamin</h1>
+        <p class="text-muted-foreground mt-2">Ostatnia aktualizacja: 04 listopada 2025</p>
+      </div>
+
+      <Card>
+        <CardContent className="prose prose-sm max-w-none pt-6">
+          <h2 class="text-xl font-bold mb-4">1. Postanowienia ogólne</h2>
+          <p>
+            1.1. Niniejszy Regulamin określa zasady korzystania z aplikacji HosLU (dalej „Aplikacja"), dostępnej pod
+            adresem www.hoslu.pl.
+          </p>
+          <p>1.2. Administratorem Aplikacji jest [nazwa podmiotu], z siedzibą w [adres].</p>
+          <p>1.3. Korzystanie z Aplikacji oznacza akceptację niniejszego Regulaminu.</p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">2. Warunki korzystania</h2>
+          <p>2.1. Aplikacja jest dostępna dla użytkowników, którzy ukończyli 18 lat.</p>
+          <p>
+            2.2. Do korzystania z pełnej funkcjonalności Aplikacji wymagane jest utworzenie konta poprzez podanie adresu
+            email i hasła.
+          </p>
+          <p>2.3. Użytkownik zobowiązuje się do podania prawdziwych danych podczas rejestracji.</p>
+          <p>2.4. Użytkownik jest odpowiedzialny za zachowanie poufności danych logowania.</p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">3. Zakres usług</h2>
+          <p>
+            3.1. Aplikacja umożliwia dostęp do informacji o dostępności miejsc w szpitalach województwa lubelskiego.
+          </p>
+          <p>3.2. Dane prezentowane w Aplikacji mają charakter wyłącznie informacyjny i mogą być nieaktualne.</p>
+          <p>3.3. Administrator nie ponosi odpowiedzialności za decyzje podjęte na podstawie informacji z Aplikacji.</p>
+          <p>
+            3.4. W przypadku nagłych sytuacji medycznych należy kontaktować się bezpośrednio ze szpitalem lub dzwonić
+            pod numer 112.
+          </p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">4. Odpowiedzialność</h2>
+          <p>
+            4.1. Administrator nie gwarantuje ciągłości działania Aplikacji i nie ponosi odpowiedzialności za przerwy
+            techniczne.
+          </p>
+          <p>
+            4.2. Administrator nie ponosi odpowiedzialności za szkody wynikające z korzystania lub niemożności
+            korzystania z Aplikacji.
+          </p>
+          <p>4.3. Dane pochodzą z zewnętrznych źródeł, za których prawidłowość Administrator nie odpowiada.</p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">5. Dane osobowe</h2>
+          <p>
+            5.1. Szczegółowe informacje dotyczące przetwarzania danych osobowych znajdują się w{" "}
+            <a href="/polityka-prywatnosci" class="text-primary hover:underline"> Polityce Prywatności </a>.
+          </p>
+          <p>5.2. Użytkownik ma prawo do usunięcia konta w każdej chwili z poziomu ustawień konta.</p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">6. Zakaz niedozwolonego użycia</h2>
+          <p>6.1. Zabrania się wykorzystywania Aplikacji w celach niezgodnych z prawem.</p>
+          <p>6.2. Zabrania się podejmowania działań mogących zakłócić działanie Aplikacji.</p>
+          <p>6.3. Zabrania się automatycznego pobierania danych (scraping) bez zgody Administratora.</p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">7. Postanowienia końcowe</h2>
+          <p>
+            7.1. Administrator zastrzega sobie prawo do zmiany Regulaminu. Zmiany wchodzą w życie z chwilą ich
+            publikacji.
+          </p>
+          <p>
+            7.2. Użytkownicy zostaną poinformowani o istotnych zmianach Regulaminu poprzez powiadomienie w Aplikacji.
+          </p>
+          <p>7.3. W sprawach nieuregulowanych niniejszym Regulaminem zastosowanie mają przepisy prawa polskiego.</p>
+          <p>7.4. Ewentualne spory będą rozstrzygane przez sąd właściwy dla siedziby Administratora.</p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">8. Kontakt</h2>
+          <p>
+            W razie pytań dotyczących Regulaminu prosimy o kontakt:{" "}
+            <a href="mailto:kontakt@hoslu.pl" class="text-primary hover:underline"> kontakt@hoslu.pl </a>
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+</Layout>

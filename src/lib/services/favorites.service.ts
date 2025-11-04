@@ -117,57 +117,38 @@ export class FavoritesService {
   }
 
   /**
-   * Remove favorite by ID
+   * Remove favorite by ward name
    *
-   * Deletes from user_favorites table with RLS check
+   * Deletes from user_favorites table by ward name (natural identifier)
+   * RLS policy ensures user can only delete own favorites
    *
    * @param userId - Authenticated user ID
-   * @param favoriteId - Favorite UUID to delete
+   * @param wardName - Ward name to remove from favorites
+   * @returns true if favorite was deleted, false if not found
    *
    * @throws ServiceError if database operation fails
    */
-  async removeFavorite(userId: string, favoriteId: string): Promise<void> {
+  async removeFavoriteByWardName(userId: string, wardName: string): Promise<boolean> {
     try {
-      const { error } = await this.supabase.from("user_favorites").delete().eq("id", favoriteId).eq("user_id", userId); // Ensures user owns the favorite
+      const { error, count } = await this.supabase
+        .from("user_favorites")
+        .delete({ count: "exact" })
+        .eq("user_id", userId)
+        .eq("ward_name", wardName);
 
       if (error) {
         throw new ServiceError("DATABASE_ERROR", "Failed to remove favorite from database", error.message);
       }
+
+      // Return true if at least one row was deleted
+      return count !== null && count > 0;
     } catch (error) {
       if (error instanceof ServiceError) {
         throw error;
       }
 
-      console.error("[FavoritesService.removeFavorite] Unexpected error:", error);
+      console.error("[FavoritesService.removeFavoriteByWardName] Unexpected error:", error);
       throw new ServiceError("INTERNAL_ERROR", "An unexpected error occurred while removing favorite");
-    }
-  }
-
-  /**
-   * Check if favorite exists and belongs to user
-   *
-   * @param userId - Authenticated user ID
-   * @param favoriteId - Favorite UUID to check
-   * @returns true if favorite exists and belongs to user
-   */
-  async favoriteExists(userId: string, favoriteId: string): Promise<boolean> {
-    try {
-      const { error, count } = await this.supabase
-        .from("user_favorites")
-        .select("id", { count: "exact" })
-        .eq("id", favoriteId)
-        .eq("user_id", userId)
-        .limit(1);
-
-      if (error) {
-        console.error("[FavoritesService.favoriteExists] Error:", error);
-        return false;
-      }
-
-      return count !== null && count > 0;
-    } catch (error) {
-      console.error("[FavoritesService.favoriteExists] Unexpected error:", error);
-      return false;
     }
   }
 }

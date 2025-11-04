@@ -1,0 +1,24 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { RegisterForm } from "../components/auth/RegisterForm";
+---
+
+<Layout title="Rejestracja - HosLU">
+  <div class="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-primary">DoSzpitala</h1>
+        <p class="text-muted-foreground mt-2">Utwórz nowe konto</p>
+      </div>
+
+      <RegisterForm client:load />
+
+      <div class="text-center mt-4">
+        <p class="text-sm text-muted-foreground">
+          Masz już konto?{" "}
+          <a href="/login" class="text-primary hover:underline font-medium"> Zaloguj się </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</Layout>

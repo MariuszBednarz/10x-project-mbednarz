@@ -1,0 +1,166 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Separator } from "../components/ui/separator";
+---
+
+<Layout title="Polityka Prywatności - HosLU">
+  <div class="min-h-screen bg-background">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold">Polityka Prywatności</h1>
+        <p class="text-muted-foreground mt-2">Ostatnia aktualizacja: 04 listopada 2025</p>
+      </div>
+
+      <Card>
+        <CardContent className="prose prose-sm max-w-none pt-6">
+          <h2 class="text-xl font-bold mb-4">1. Administrator danych</h2>
+          <p>
+            1.1. Administratorem danych osobowych przetwarzanych w Aplikacji HosLU jest [nazwa podmiotu], z siedzibą w
+            [adres], e-mail: kontakt@hoslu.pl (dalej „Administrator").
+          </p>
+          <p>
+            1.2. Administrator przetwarza dane osobowe zgodnie z Rozporządzeniem Parlamentu Europejskiego i Rady (UE)
+            2016/679 (RODO).
+          </p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">2. Jakie dane zbieramy?</h2>
+          <p>2.1. W ramach korzystania z Aplikacji zbieramy następujące dane osobowe:</p>
+          <ul class="list-disc list-inside space-y-2 ml-4">
+            <li>
+              <strong>Adres email</strong> - wymagany do rejestracji i logowania
+            </li>
+            <li>
+              <strong>Hasło</strong> - przechowywane w formie zaszyfrowanej (hash)
+            </li>
+            <li>
+              <strong>Data rejestracji</strong> - automatycznie zapisywana podczas tworzenia konta
+            </li>
+            <li>
+              <strong>Ulubione oddziały</strong> - lista oddziałów zapisanych przez użytkownika
+            </li>
+          </ul>
+          <p>
+            2.2. Dodatkowo zbieramy dane techniczne (adres IP, typ przeglądarki) w celach diagnostycznych i zapewnienia
+            bezpieczeństwa.
+          </p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">3. Cel przetwarzania danych</h2>
+          <p>3.1. Dane osobowe przetwarzamy w następujących celach:</p>
+          <ul class="list-disc list-inside space-y-2 ml-4">
+            <li>Świadczenie usług Aplikacji (podstawa: art. 6 ust. 1 lit. b RODO)</li>
+            <li>Uwierzytelnianie użytkowników (podstawa: art. 6 ust. 1 lit. b RODO)</li>
+            <li>Personalizacja treści (ulubione oddziały) (podstawa: zgoda, art. 6 ust. 1 lit. a RODO)</li>
+            <li>Zapewnienie bezpieczeństwa i wykrywanie nadużyć (podstawa: art. 6 ust. 1 lit. f RODO)</li>
+            <li>Komunikacja z użytkownikami (podstawa: art. 6 ust. 1 lit. b RODO)</li>
+          </ul>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">4. Jak długo przechowujemy dane?</h2>
+          <p>4.1. Dane osobowe przechowujemy:</p>
+          <ul class="list-disc list-inside space-y-2 ml-4">
+            <li>Do momentu usunięcia konta przez użytkownika</li>
+            <li>Do cofnięcia zgody na przetwarzanie (jeśli dotyczy)</li>
+            <li>Przez okres wymagany przepisami prawa (jeśli dotyczy)</li>
+          </ul>
+          <p>4.2. Po usunięciu konta wszystkie dane osobowe są usuwane z bazy danych bez możliwości odzyskania.</p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">5. Udostępnianie danych</h2>
+          <p>5.1. Dane osobowe mogą być udostępniane następującym podmiotom:</p>
+          <ul class="list-disc list-inside space-y-2 ml-4">
+            <li>
+              <strong>Supabase Inc.</strong> - dostawca usług bazy danych i autoryzacji (siedziba: USA, zgodność z GDPR poprzez
+              Standard Contractual Clauses)
+            </li>
+            <li>
+              <strong>Dostawcy usług hostingowych</strong> - w zakresie niezbędnym do świadczenia usług
+            </li>
+          </ul>
+          <p>5.2. Dane nie są sprzedawane ani udostępniane innym podmiotom w celach marketingowych.</p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">6. Bezpieczeństwo danych</h2>
+          <p>6.1. Stosujemy odpowiednie środki techniczne i organizacyjne w celu ochrony danych osobowych:</p>
+          <ul class="list-disc list-inside space-y-2 ml-4">
+            <li>Szyfrowanie połączeń (HTTPS)</li>
+            <li>Szyfrowanie haseł (bcrypt)</li>
+            <li>Bezpieczne przechowywanie tokenów autoryzacyjnych (httpOnly cookies)</li>
+            <li>Regularne kopie zapasowe</li>
+            <li>Ograniczenie dostępu do danych</li>
+          </ul>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">7. Prawa użytkownika</h2>
+          <p>7.1. Użytkownik ma prawo do:</p>
+          <ul class="list-disc list-inside space-y-2 ml-4">
+            <li>
+              <strong>Dostępu do danych</strong> - przeglądanie swoich danych w ustawieniach konta
+            </li>
+            <li>
+              <strong>Sprostowania danych</strong> - poprawianie nieprawidłowych danych
+            </li>
+            <li>
+              <strong>Usunięcia danych</strong> - usunięcie konta z poziomu ustawień
+            </li>
+            <li>
+              <strong>Ograniczenia przetwarzania</strong> - żądanie ograniczenia przetwarzania
+            </li>
+            <li>
+              <strong>Przenoszenia danych</strong> - otrzymanie danych w formacie JSON
+            </li>
+            <li>
+              <strong>Cofnięcia zgody</strong> - w każdej chwili bez wpływu na zgodność z prawem przetwarzania przed cofnięciem
+            </li>
+            <li>
+              <strong>Wniesienia skargi</strong> - do Prezesa Urzędu Ochrony Danych Osobowych
+            </li>
+          </ul>
+          <p>7.2. W celu realizacji swoich praw prosimy o kontakt: kontakt@hoslu.pl</p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">8. Pliki cookies</h2>
+          <p>8.1. Aplikacja wykorzystuje pliki cookies wyłącznie w celach:</p>
+          <ul class="list-disc list-inside space-y-2 ml-4">
+            <li>Uwierzytelniania użytkowników (sesja)</li>
+            <li>Zapamiętywania preferencji (zgoda na cookies)</li>
+          </ul>
+          <p>8.2. Nie używamy plików cookies do celów marketingowych ani śledzenia w MVP.</p>
+          <p>8.3. Użytkownik może zarządzać plikami cookies w ustawieniach przeglądarki.</p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">9. Zmiany w Polityce Prywatności</h2>
+          <p>9.1. Administrator zastrzega sobie prawo do wprowadzania zmian w Polityce Prywatności.</p>
+          <p>
+            9.2. Użytkownicy zostaną poinformowani o istotnych zmianach poprzez powiadomienie w Aplikacji lub e-mail.
+          </p>
+          <p>
+            9.3. Obowiązująca wersja Polityki Prywatności jest dostępna pod adresem: www.hoslu.pl/polityka-prywatnosci
+          </p>
+
+          <Separator className="my-6" />
+
+          <h2 class="text-xl font-bold mb-4">10. Kontakt</h2>
+          <p>W razie pytań dotyczących przetwarzania danych osobowych prosimy o kontakt:</p>
+          <ul class="list-none space-y-2">
+            <li>
+              <strong>Email:</strong>{" "}
+              <a href="mailto:kontakt@hoslu.pl" class="text-primary hover:underline"> kontakt@hoslu.pl </a>
+            </li>
+            <li><strong>Adres korespondencyjny:</strong> [adres]</li>
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+</Layout>
