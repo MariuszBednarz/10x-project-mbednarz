@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Alert, AlertDescription } from "../ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { authService } from "../../lib/services/auth.service";
 import { authenticatedFetch } from "@/lib/utils/api-client";
@@ -19,6 +19,7 @@ export function AccountSettings() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     fetchUserProfile();
@@ -50,6 +51,19 @@ export function AccountSettings() {
       console.error("Failed to fetch user profile:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await authService.signOut();
+      toast.success("Wylogowano pomyślnie");
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Failed to logout:", error);
+      toast.error("Nie udało się wylogować. Spróbuj ponownie.");
+      setIsLoggingOut(false);
     }
   };
 
@@ -155,6 +169,19 @@ export function AccountSettings() {
               </Button>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Wyloguj się</CardTitle>
+          <CardDescription>Zakończ aktualną sesję</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={handleLogout} disabled={isLoggingOut} className="w-full sm:w-auto">
+            <LogOut className="w-4 h-4 mr-2" />
+            {isLoggingOut ? "Wylogowywanie..." : "Wyloguj się"}
+          </Button>
         </CardContent>
       </Card>
 

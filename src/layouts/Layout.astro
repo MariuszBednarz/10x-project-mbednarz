@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/Navbar/Navbar";
+import { SessionMonitor } from "@/components/SessionMonitor";
 import { CookieConsent } from "@/components/CookieConsent/CookieConsent";
 import Footer from "@/components/Footer/Footer.astro";
 
@@ -23,6 +24,7 @@ const { title = "HosLU - Dostępność miejsc w szpitalach" } = Astro.props;
   </head>
   <body class="flex flex-col min-h-screen">
     <Navbar client:load />
+    <SessionMonitor client:load />
     <main class="flex-1">
       <slot />
     </main>

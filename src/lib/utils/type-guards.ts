@@ -3,7 +3,7 @@
  * Provides runtime type checking and data conversions
  */
 
-import type { AvailablePlacesRaw, AvailablePlacesParsed, ScrapingStatus } from "@/types";
+import type { AvailablePlacesRaw, AvailablePlacesParsed } from "@/types";
 
 /**
  * Parse availablePlaces from raw database string to integer
@@ -32,23 +32,6 @@ export function parseAvailablePlaces(raw: AvailablePlacesRaw): AvailablePlacesPa
 
   const parsed = parseInt(raw, 10);
   return isNaN(parsed) ? 0 : parsed;
-}
-
-/**
- * Type guard to check if a string is a valid scraping status
- * Used for runtime validation of query parameters
- *
- * @param status - String to check
- * @returns true if status is "success" or "failure"
- *
- * @example
- * isValidScrapingStatus("success") // true
- * isValidScrapingStatus("failure") // true
- * isValidScrapingStatus("pending") // false
- * isValidScrapingStatus("invalid") // false
- */
-export function isValidScrapingStatus(status: string): status is ScrapingStatus {
-  return status === "success" || status === "failure";
 }
 
 /**

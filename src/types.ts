@@ -52,21 +52,6 @@ export interface AIInsightDTO {
   updated_at: string;
 }
 
-/**
- * Scraping Log - Audit log for scraping operations
- * Maps to: scraping_logs table
- */
-export interface ScrapingLogDTO {
-  id: string;
-  started_at: string;
-  completed_at: string | null;
-  status: "success" | "failure";
-  records_inserted: number;
-  records_updated: number;
-  error_message: string | null;
-  created_at: string;
-}
-
 // ===========================================
 // API RESPONSE TYPES
 // ===========================================
@@ -181,18 +166,6 @@ export function parseSystemStatus(json: unknown): SystemStatusDTO {
   };
 }
 
-/**
- * Scraping Logs List Response - Response for GET /api/logs/scraping
- */
-export interface ScrapingLogsListResponseDTO {
-  data: ScrapingLogDTO[];
-  meta: {
-    total: number;
-    limit: number;
-    offset: number;
-  };
-}
-
 // ===========================================
 // COMMAND TYPES (API Inputs)
 // ===========================================
@@ -235,13 +208,6 @@ export interface HospitalsQueryParams extends PaginationQueryParams {
   district?: string;
   search?: string;
   order?: "availablePlaces.desc" | "hospitalName.asc";
-}
-
-/**
- * Scraping Logs Query Parameters - GET /api/logs/scraping
- */
-export interface ScrapingLogsQueryParams extends PaginationQueryParams {
-  status?: "success" | "failure";
 }
 
 // ===========================================

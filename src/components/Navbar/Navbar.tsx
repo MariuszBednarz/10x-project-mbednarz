@@ -19,12 +19,22 @@ export function Navbar({ isAuthenticated: isAuthenticatedProp }: NavbarProps) {
   // Handle logout
   const handleLogout = async () => {
     try {
-      // Clear session and redirect
-      await fetch("/api/auth/logout", { method: "POST" });
+      // Call logout API endpoint
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+
+      // Clear localStorage (Supabase session)
+      localStorage.clear();
+
+      // Redirect to login
       window.location.href = "/login";
     } catch (err) {
       console.error("Logout error:", err);
-      // Force redirect anyway
+      // Clear localStorage and force redirect anyway
+      localStorage.clear();
       window.location.href = "/login";
     }
   };
@@ -38,6 +48,7 @@ export function Navbar({ isAuthenticated: isAuthenticatedProp }: NavbarProps) {
         showInsightIcon={showInsightIcon}
         onRestoreInsight={handleRestoreInsight}
         isAuthenticated={isAuthenticated}
+        onLogout={handleLogout}
       />
 
       {/* Mobile Navbar */}
@@ -49,6 +60,7 @@ export function Navbar({ isAuthenticated: isAuthenticatedProp }: NavbarProps) {
         isAuthenticated={isAuthenticated}
         isOpen={isOpen}
         onOpenChange={(open) => (open ? toggleMenu() : closeMenu())}
+        onLogout={handleLogout}
       />
     </>
   );

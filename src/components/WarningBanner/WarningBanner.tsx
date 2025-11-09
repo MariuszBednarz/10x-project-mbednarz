@@ -18,7 +18,7 @@ const WarningBannerContent = ({ hoursSinceLastScrape, sourceUrl }: WarningBanner
     >
       <AlertTriangle className="h-4 w-4" aria-hidden="true" />
       <AlertTitle>Dane mogą być nieaktualne</AlertTitle>
-      <AlertDescription className="text-yellow-800">
+      <AlertDescription className="text-yellow-800 ![display:block]">
         Ostatnia aktualizacja <span className="font-semibold">{hoursSinceLastScrape}h temu</span>. Sprawdź{" "}
         <a
           href={sourceUrl}

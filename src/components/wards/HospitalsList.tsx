@@ -3,8 +3,6 @@ import { toast } from "sonner";
 import { HospitalCard } from "@/components/HospitalCard/HospitalCard";
 import { SearchBar } from "@/components/SearchBar/SearchBar";
 import { WarningBanner } from "@/components/WarningBanner/WarningBanner";
-import { ErrorBanner } from "@/components/ErrorBanner/ErrorBanner";
-import { useScrapingStatus } from "@/components/hooks/useScrapingStatus";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { HospitalWardDTO } from "@/types";
@@ -22,8 +20,6 @@ export const HospitalsList = ({ wardName }: HospitalsListProps) => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [lastScrapeTime, setLastScrapeTime] = useState<string | null>(null);
-
-  const { hasFailed, lastLog } = useScrapingStatus();
 
   // Fetch hospitals by ward
   useEffect(() => {
@@ -99,9 +95,6 @@ export const HospitalsList = ({ wardName }: HospitalsListProps) => {
     <div className="w-full">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="space-y-6">
-          {/* Error Banner - Show if scraping failed */}
-          {hasFailed && <ErrorBanner errorMessage={lastLog?.error_message} />}
-
           {/* Warning Banner - Show if data is stale (>12 hours) */}
           {hoursSinceLastScrape > 12 && (
             <WarningBanner hoursSinceLastScrape={hoursSinceLastScrape} sourceUrl="https://www.csrwl.pl/" />

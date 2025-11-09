@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Menu, User, LogOut, Settings, Lightbulb } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import type { User as AuthUser } from "@supabase/supabase-js";
@@ -12,6 +19,7 @@ interface NavbarMobileProps {
   isAuthenticated: boolean;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onLogout: () => void;
 }
 
 export function NavbarMobile({
@@ -22,12 +30,8 @@ export function NavbarMobile({
   isAuthenticated,
   isOpen,
   onOpenChange,
+  onLogout,
 }: NavbarMobileProps) {
-  const handleLogout = async () => {
-    // Will be implemented in main Navbar component
-    window.location.href = "/login";
-  };
-
   const handleLinkClick = () => {
     onOpenChange(false);
   };
@@ -45,7 +49,7 @@ export function NavbarMobile({
           <SheetHeader>
             <SheetTitle>Menu</SheetTitle>
           </SheetHeader>
-          <div className="flex flex-col gap-4 mt-8">
+          <div className="flex flex-col gap-4 mt-8 px-4">
             {isAuthenticated && (
               <>
                 <a href="/wards" className="text-base hover:text-primary transition-colors" onClick={handleLinkClick}>
@@ -67,7 +71,7 @@ export function NavbarMobile({
                 </a>
                 <Separator className="my-2" />
                 <button
-                  onClick={handleLogout}
+                  onClick={onLogout}
                   className="text-base text-left text-red-600 hover:text-red-700 transition-colors"
                 >
                   Wyloguj
@@ -95,7 +99,7 @@ export function NavbarMobile({
 
       {/* Logo - Centered */}
       <a href={isAuthenticated ? "/wards" : "/"} className="font-bold text-base flex-1 text-center">
-        DoSzpitala
+        HosLU
       </a>
 
       {/* Right Icons */}
@@ -113,19 +117,33 @@ export function NavbarMobile({
           </Button>
         )}
 
-        {/* User Icon */}
+        {/* User Dropdown */}
         {isAuthenticated && !isLoading && (
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            aria-label="Profil użytkownika"
-            className="text-white hover:bg-primary-light"
-          >
-            <a href="/settings">
-              <User className="w-5 h-5" />
-            </a>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Menu użytkownika"
+                className="text-white hover:bg-primary-light"
+              >
+                <User className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <a href="/settings" className="flex items-center cursor-pointer">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Ustawienia
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onLogout} variant="destructive" className="cursor-pointer">
+                <LogOut className="w-4 h-4 mr-2" />
+                Wyloguj
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
     </nav>

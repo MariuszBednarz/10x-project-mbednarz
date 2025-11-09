@@ -1,6 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { HospitalsList } from "@/components/wards/HospitalsList";
+import { HospitalsListProtected } from "@/components/wards/HospitalsListProtected";
 
 interface Props {
   wardName: string;
@@ -16,5 +16,5 @@ const decodedWardName = decodeURIComponent(wardName);
 ---
 
 <Layout title={`Szpitale - ${decodedWardName}`}>
-  <HospitalsList wardName={decodedWardName} client:load />
+  <HospitalsListProtected wardName={decodedWardName} client:load />
 </Layout>

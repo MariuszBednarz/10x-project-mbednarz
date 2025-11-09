@@ -6,10 +6,8 @@ import { WardCard } from "@/components/WardCard/WardCard";
 import { SearchBar } from "@/components/SearchBar/SearchBar";
 import { useFavorites } from "@/components/hooks/useFavorites";
 import { useInsights } from "@/components/hooks/useInsights";
-import { useScrapingStatus } from "@/components/hooks/useScrapingStatus";
 import { WarningBanner } from "@/components/WarningBanner/WarningBanner";
 import { AIInsightBanner } from "@/components/AIInsightBanner/AIInsightBanner";
-import { ErrorBanner } from "@/components/ErrorBanner/ErrorBanner";
 import type { WardAggregatedDTO } from "@/types";
 import { Switch } from "@/components/ui/switch";
 import { AlertCircle } from "lucide-react";
@@ -47,7 +45,6 @@ export const WardsList = () => {
   });
 
   const { insight } = useInsights();
-  const { hasFailed, lastLog } = useScrapingStatus();
 
   // Initialize insight visibility from sessionStorage
   useEffect(() => {
@@ -141,9 +138,6 @@ export const WardsList = () => {
             <h1 className="text-2xl sm:text-3xl font-bold">Lista oddziałów</h1>
             <p className="text-sm text-muted-foreground mt-1">Woj. Lubelskie</p>
           </div>
-
-          {/* Error Banner - Show if scraping failed */}
-          {hasFailed && lastLog && <ErrorBanner errorMessage={lastLog.error_message} />}
 
           {/* Warning Banner - Show if data is stale (>12 hours) */}
           {hoursSinceLastScrape > 12 && (

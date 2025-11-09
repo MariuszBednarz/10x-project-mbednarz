@@ -4,8 +4,10 @@ import { Input } from "../ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { toast } from "sonner";
 import { authService } from "../../lib/services/auth.service";
+import { useGuestGuard } from "../hooks/useGuestGuard";
 
 export function LoginForm() {
+  const { loading: guardLoading } = useGuestGuard();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +42,19 @@ export function LoginForm() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking auth
+  if (guardLoading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

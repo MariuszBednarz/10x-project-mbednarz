@@ -15,6 +15,7 @@ interface NavbarDesktopProps {
   showInsightIcon: boolean;
   onRestoreInsight: () => void;
   isAuthenticated: boolean;
+  onLogout: () => void;
 }
 
 export function NavbarDesktop({
@@ -23,17 +24,13 @@ export function NavbarDesktop({
   showInsightIcon,
   onRestoreInsight,
   isAuthenticated,
+  onLogout,
 }: NavbarDesktopProps) {
-  const handleLogout = async () => {
-    // Will be implemented in main Navbar component
-    window.location.href = "/login";
-  };
-
   return (
     <nav className="hidden lg:flex items-center justify-between px-6 py-4 bg-primary text-white">
       {/* Logo/Brand */}
       <a href={isAuthenticated ? "/wards" : "/"} className="font-bold text-lg hover:opacity-80 transition-opacity">
-        DoSzpitala
+        HosLU
       </a>
 
       {/* Center Links */}
@@ -91,7 +88,7 @@ export function NavbarDesktop({
                 </a>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+              <DropdownMenuItem onClick={onLogout} className="text-red-600 cursor-pointer">
                 <LogOut className="w-4 h-4 mr-2" />
                 Wyloguj
               </DropdownMenuItem>
