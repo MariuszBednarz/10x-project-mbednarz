@@ -37,6 +37,7 @@ Ratownicy medyczni tracą cenny czas próbując uzyskać aktualne informacje o d
 ### 3.2. Uwierzytelnianie użytkowników
 
 - Rejestracja: email + hasło (minimalne dane)
+- Odzyskiwanie/reset hasła
 - Obowiązkowa weryfikacja emaila
 - Landing page z formularzem rejestracji
 - Funkcja usunięcia konta i danych

@@ -182,7 +182,7 @@ export function ResetPasswordForm() {
               minLength={8}
               className="h-[44px]"
             />
-            <p className="text-xs text-muted-foreground">Minimum 8 znaków</p>
+            <p className="text-xs text-muted-foreground">Minimum 8 znaków, zawierające litery i cyfry</p>
           </div>
 
           <div className="space-y-2">

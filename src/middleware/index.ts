@@ -1,6 +1,7 @@
 import { defineMiddleware } from "astro:middleware";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../types/database.types";
+import { addSecurityHeaders } from "./security-headers";
 
 export const onRequest = defineMiddleware(async (context, next) => {
   // Get Supabase config from environment
@@ -33,5 +34,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // doesn't have access to localStorage where Supabase stores sessions.
   // See: src/components/hooks/useAuthGuard.ts for client-side protection
 
-  return next();
+  // Get response from handler
+  const response = await next();
+
+  // Add security headers to all responses
+  return addSecurityHeaders(response);
 });

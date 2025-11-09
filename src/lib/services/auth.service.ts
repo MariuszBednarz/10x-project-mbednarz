@@ -15,8 +15,11 @@ export const authService = {
    * Sign up a new user
    */
   async signUp(data: SignUpData) {
+    // Normalize email: trim whitespace and convert to lowercase
+    const email = data.email.trim().toLowerCase();
+
     const { data: authData, error } = await supabaseClient.auth.signUp({
-      email: data.email,
+      email,
       password: data.password,
     });
 
@@ -31,8 +34,11 @@ export const authService = {
    * Sign in an existing user
    */
   async signIn(data: SignInData) {
+    // Normalize email: trim whitespace and convert to lowercase
+    const email = data.email.trim().toLowerCase();
+
     const { data: authData, error } = await supabaseClient.auth.signInWithPassword({
-      email: data.email,
+      email,
       password: data.password,
     });
 
@@ -84,9 +90,12 @@ export const authService = {
    * Resend verification email
    */
   async resendVerificationEmail(email: string) {
+    // Normalize email: trim whitespace and convert to lowercase
+    const normalizedEmail = email.trim().toLowerCase();
+
     const { error } = await supabaseClient.auth.resend({
       type: "signup",
-      email,
+      email: normalizedEmail,
     });
 
     if (error) {
@@ -98,7 +107,10 @@ export const authService = {
    * Request password reset email
    */
   async requestPasswordReset(email: string) {
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    // Normalize email: trim whitespace and convert to lowercase
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(normalizedEmail, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
 
