@@ -72,11 +72,13 @@ export function isEmptyOrWhitespace(text: string): boolean {
  */
 export function getInitials(wardName: string): string {
   if (!wardName) return "?";
-  const words = wardName.trim().split(" ");
+  const trimmed = wardName.trim();
+  if (!trimmed) return "?";
+  const words = trimmed.split(" ");
   if (words.length > 1) {
     return (words[0][0] + words[1][0]).toUpperCase();
   }
-  return wardName.substring(0, 2).toUpperCase();
+  return trimmed.substring(0, 2).toUpperCase();
 }
 
 /**

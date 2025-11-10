@@ -49,6 +49,13 @@ HosLU is a Progressive Web App (PWA) designed for paramedics and healthcare serv
 - **Purpose**: Daily insights about bed availability trends
 - **Caching**: 24-hour database cache
 
+### Testing
+
+- **Framework**: [Vitest](https://vitest.dev/) - Fast unit test framework
+- **Testing Library**: [@testing-library/react](https://testing-library.com/) - User-centric testing
+- **Environment**: jsdom - DOM simulation for component tests
+- **UI Mode**: @vitest/ui - Visual test runner
+
 ### Hosting
 
 - **Frontend**: [Render.com](https://render.com/) Static Site
@@ -110,6 +117,21 @@ HosLU is a Progressive Web App (PWA) designed for paramedics and healthcare serv
 
    The app will be available at `http://localhost:4321`
 
+7. **Run tests (optional)**
+
+   ```bash
+   # Watch mode (auto-reload on changes)
+   npm test
+
+   # Single run (CI/CD)
+   npm run test:run
+
+   # Visual UI mode
+   npm run test:ui
+   ```
+
+   See [Testing Documentation](./docs/TESTING.md) for more details.
+
 ## Available Scripts
 
 | Script             | Description                                  |
@@ -117,6 +139,9 @@ HosLU is a Progressive Web App (PWA) designed for paramedics and healthcare serv
 | `npm run dev`      | Start the development server with hot reload |
 | `npm run build`    | Build the production-ready static site       |
 | `npm run preview`  | Preview the production build locally         |
+| `npm test`         | Run tests in watch mode                      |
+| `npm run test:run` | Run tests once (CI/CD)                       |
+| `npm run test:ui`  | Open Vitest UI mode                          |
 | `npm run lint`     | Run ESLint to check code quality             |
 | `npm run lint:fix` | Automatically fix ESLint issues              |
 | `npm run format`   | Format code with Prettier                    |
