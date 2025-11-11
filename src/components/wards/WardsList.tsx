@@ -140,7 +140,10 @@ export const WardsList = () => {
 
           {/* Warning Banner - Show if data is stale (>12 hours) */}
           {hoursSinceLastScrape > 12 && (
-            <WarningBanner hoursSinceLastScrape={hoursSinceLastScrape} sourceUrl="https://www.csrwl.pl/" />
+            <WarningBanner
+              hoursSinceLastScrape={hoursSinceLastScrape}
+              sourceUrl="https://szpitale.lublin.uw.gov.pl/page/1,raporty-szpitali.html"
+            />
           )}
 
           {/* AI Insight Banner - Show if available and not dismissed */}

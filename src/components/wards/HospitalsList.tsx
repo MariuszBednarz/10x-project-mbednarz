@@ -97,7 +97,10 @@ export const HospitalsList = ({ wardName }: HospitalsListProps) => {
         <div className="space-y-6">
           {/* Warning Banner - Show if data is stale (>12 hours) */}
           {hoursSinceLastScrape > 12 && (
-            <WarningBanner hoursSinceLastScrape={hoursSinceLastScrape} sourceUrl="https://www.csrwl.pl/" />
+            <WarningBanner
+              hoursSinceLastScrape={hoursSinceLastScrape}
+              sourceUrl="https://szpitale.lublin.uw.gov.pl/page/1,raporty-szpitali.html"
+            />
           )}
 
           {/* Back Button */}
