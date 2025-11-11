@@ -53,7 +53,6 @@ export function useSessionMonitor(options: UseSessionMonitorOptions = {}) {
     } = supabaseClient.auth.onAuthStateChange((event, session) => {
       // Handle signed out event
       if (event === "SIGNED_OUT") {
-        console.log("[Session Monitor] User signed out");
         onSessionExpired?.();
 
         // Redirect to login if not already there
@@ -64,7 +63,7 @@ export function useSessionMonitor(options: UseSessionMonitorOptions = {}) {
 
       // Handle token expired event
       if (event === "TOKEN_REFRESHED") {
-        console.log("[Session Monitor] Token refreshed successfully");
+        // Token refreshed successfully
       }
 
       // Check if session is null but user is on protected route
@@ -75,7 +74,6 @@ export function useSessionMonitor(options: UseSessionMonitorOptions = {}) {
         );
 
         if (isProtectedRoute) {
-          console.log("[Session Monitor] No session on protected route, redirecting to login");
           window.location.href = "/login";
         }
       }

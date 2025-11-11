@@ -11,7 +11,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ isAuthenticated: isAuthenticatedProp }: NavbarProps) {
-  const { isOpen, toggleMenu, closeMenu, user, isLoading, error, showInsightIcon, handleRestoreInsight } = useNavbar();
+  const { isOpen, toggleMenu, closeMenu, user, isLoading, showInsightIcon, handleRestoreInsight } = useNavbar();
 
   // Determine if user is authenticated
   const isAuthenticated = isAuthenticatedProp ?? user !== null;
@@ -31,8 +31,7 @@ export function Navbar({ isAuthenticated: isAuthenticatedProp }: NavbarProps) {
 
       // Redirect to login
       window.location.href = "/login";
-    } catch (err) {
-      console.error("Logout error:", err);
+    } catch {
       // Clear localStorage and force redirect anyway
       localStorage.clear();
       window.location.href = "/login";

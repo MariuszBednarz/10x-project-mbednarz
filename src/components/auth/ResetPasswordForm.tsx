@@ -25,7 +25,6 @@ export function ResetPasswordForm() {
         } = await supabaseClient.auth.getSession();
 
         if (error) {
-          console.error("Error getting session:", error);
           setIsValidToken(false);
           return;
         }
@@ -36,8 +35,7 @@ export function ResetPasswordForm() {
         } else {
           setIsValidToken(false);
         }
-      } catch (err) {
-        console.error("Error validating recovery token:", err);
+      } catch {
         setIsValidToken(false);
       } finally {
         setIsValidating(false);
@@ -78,14 +76,13 @@ export function ResetPasswordForm() {
       setTimeout(() => {
         window.location.href = "/login";
       }, 2000);
-    } catch (err: any) {
-      console.error("Password reset error:", err);
-
+    } catch (err: unknown) {
       // Handle specific Supabase errors
-      if (err.message?.includes("New password should be different")) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes("New password should be different")) {
         setError("Nowe hasło musi być inne niż poprzednie");
         toast.error("Nowe hasło musi być inne niż poprzednie");
-      } else if (err.message?.includes("Password should be at least")) {
+      } else if (errorMessage.includes("Password should be at least")) {
         setError("Hasło musi mieć co najmniej 8 znaków");
         toast.error("Hasło musi mieć co najmniej 8 znaków");
       } else {

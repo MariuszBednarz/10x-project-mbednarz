@@ -66,16 +66,22 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
     // 4. Return response
     return createSuccessResponse(200, result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle email not verified error
     if (isEmailNotVerifiedError(error)) {
-      return createErrorResponse(403, "FORBIDDEN", error.message, undefined, "Please verify your email address");
+      return createErrorResponse(
+        403,
+        "FORBIDDEN",
+        getErrorMessage(error),
+        undefined,
+        "Please verify your email address"
+      );
     }
 
     // Log and handle unexpected errors
     console.error("[GET /api/users/me/favorites] Error:", {
       message: getErrorMessage(error),
-      stack: error?.stack,
+      stack: error instanceof Error ? error.stack : undefined,
     });
 
     return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Failed to fetch favorites");
@@ -120,7 +126,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       return createErrorResponse(400, "BAD_REQUEST", "Invalid JSON in request body");
     }
 
@@ -132,15 +138,21 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // 4. Return response
     return createSuccessResponse(201, favorite);
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle validation errors
     if (isValidationError(error)) {
-      return createErrorResponse(400, "BAD_REQUEST", error.message);
+      return createErrorResponse(400, "BAD_REQUEST", getErrorMessage(error));
     }
 
     // Handle email not verified error
     if (isEmailNotVerifiedError(error)) {
-      return createErrorResponse(403, "FORBIDDEN", error.message, undefined, "Please verify your email address");
+      return createErrorResponse(
+        403,
+        "FORBIDDEN",
+        getErrorMessage(error),
+        undefined,
+        "Please verify your email address"
+      );
     }
 
     // Handle duplicate key violation (PostgreSQL error code 23505)
@@ -149,15 +161,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // Handle ward name too long (service error)
-    if (error?.code === "CONFLICT") {
-      return createErrorResponse(409, "CONFLICT", error.message);
+    if ((error as { code?: string })?.code === "CONFLICT") {
+      return createErrorResponse(409, "CONFLICT", getErrorMessage(error));
     }
-
-    // Log and handle unexpected errors
-    console.error("[POST /api/users/me/favorites] Error:", {
-      message: getErrorMessage(error),
-      stack: error?.stack,
-    });
 
     return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Failed to add favorite");
   }

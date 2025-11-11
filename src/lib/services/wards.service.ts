@@ -69,7 +69,6 @@ export class WardsService {
         throw error;
       }
 
-      console.error("[WardsService.getWards] Unexpected error:", error);
       throw new ServiceError("INTERNAL_ERROR", "An unexpected error occurred while fetching wards");
     }
   }
@@ -86,13 +85,11 @@ export class WardsService {
       const { data, error } = await this.supabase.rpc("is_data_stale");
 
       if (error) {
-        console.error("[WardsService.isDataStale] Error:", error);
         return false; // Graceful degradation
       }
 
       return Boolean(data);
-    } catch (error) {
-      console.error("[WardsService.isDataStale] Unexpected error:", error);
+    } catch {
       return false; // Graceful degradation
     }
   }
@@ -109,13 +106,11 @@ export class WardsService {
       const { data, error } = await this.supabase.rpc("get_last_scrape_time");
 
       if (error) {
-        console.error("[WardsService.getLastScrapeTime] Error:", error);
         return null; // Graceful degradation
       }
 
       return data ? new Date(data).toISOString() : null;
-    } catch (error) {
-      console.error("[WardsService.getLastScrapeTime] Unexpected error:", error);
+    } catch {
       return null; // Graceful degradation
     }
   }

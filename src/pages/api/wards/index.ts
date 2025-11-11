@@ -68,21 +68,27 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
     // 4. Return response
     return createSuccessResponse(200, result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle validation errors
     if (isValidationError(error)) {
-      return createErrorResponse(400, "BAD_REQUEST", error.message);
+      return createErrorResponse(400, "BAD_REQUEST", getErrorMessage(error));
     }
 
     // Handle email not verified error
     if (isEmailNotVerifiedError(error)) {
-      return createErrorResponse(403, "FORBIDDEN", error.message, undefined, "Please verify your email address");
+      return createErrorResponse(
+        403,
+        "FORBIDDEN",
+        getErrorMessage(error),
+        undefined,
+        "Please verify your email address"
+      );
     }
 
     // Log and handle unexpected errors
     console.error("[GET /api/wards] Error:", {
       message: getErrorMessage(error),
-      stack: error?.stack,
+      stack: error instanceof Error ? error.stack : undefined,
     });
 
     return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Failed to fetch wards");

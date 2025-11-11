@@ -8,7 +8,6 @@
 
 import type { SupabaseClient } from "@/db/supabase.client";
 import type { CurrentInsightResponseDTO } from "@/types";
-import { ServiceError } from "@/lib/utils/error-handler";
 
 export class InsightsService {
   constructor(private supabase: SupabaseClient) {}
@@ -36,11 +35,9 @@ export class InsightsService {
       if (error) {
         // Handle "no rows" error gracefully (not an actual error)
         if (error.code === "PGRST116") {
-          console.log("[InsightsService.getCurrentInsight] No active insight found");
           return null;
         }
 
-        console.error("[InsightsService.getCurrentInsight] Error:", error);
         return null; // Graceful degradation
       }
 
@@ -53,8 +50,7 @@ export class InsightsService {
         generated_at: data.generated_at,
         expires_at: data.expires_at,
       };
-    } catch (error) {
-      console.error("[InsightsService.getCurrentInsight] Unexpected error:", error);
+    } catch {
       return null; // Graceful degradation
     }
   }

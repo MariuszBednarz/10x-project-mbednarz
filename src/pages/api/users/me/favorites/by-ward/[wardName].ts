@@ -61,17 +61,23 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
 
     // 4. Return 204 No Content (empty body)
     return new Response(null, { status: 204 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle email not verified error
     if (isEmailNotVerifiedError(error)) {
-      return createErrorResponse(403, "FORBIDDEN", error.message, undefined, "Please verify your email address");
+      return createErrorResponse(
+        403,
+        "FORBIDDEN",
+        getErrorMessage(error),
+        undefined,
+        "Please verify your email address"
+      );
     }
 
     // Log and handle unexpected errors
     console.error(`[DELETE /api/users/me/favorites/by-ward/${params.wardName}] Error:`, {
       wardName: params.wardName,
       message: getErrorMessage(error),
-      stack: error?.stack,
+      stack: error instanceof Error ? error.stack : undefined,
     });
 
     return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Failed to remove favorite");

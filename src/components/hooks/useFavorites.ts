@@ -63,9 +63,8 @@ export const useFavorites = (options?: UseFavoritesOptions) => {
         // 4. Success
         const successMessage = isFavorite ? "Removed from favorites" : "Added to favorites";
         options?.onSuccess?.(successMessage);
-      } catch (err) {
+      } catch {
         // Error already handled above
-        console.error("[useFavorites] Error toggling favorite:", err);
       } finally {
         setLoadingWards((prev) => {
           const next = new Set(prev);

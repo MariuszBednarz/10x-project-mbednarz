@@ -50,10 +50,11 @@ export type WardsQueryInput = z.infer<typeof wardsQuerySchema>;
 export function validateWardsQuery(input: unknown): WardsQueryInput {
   try {
     return wardsQuerySchema.parse(input);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const zodError = error as { errors?: { message: string }[] };
     throw {
       code: "VALIDATION_ERROR",
-      message: error.errors?.[0]?.message || "Validation failed",
+      message: zodError.errors?.[0]?.message || "Validation failed",
     };
   }
 }

@@ -46,8 +46,8 @@ export class ValidationError extends Error {
  * @param error - Error object from Supabase
  * @returns true if duplicate key violation
  */
-export function isDuplicateKeyError(error: any): boolean {
-  return error?.code === "23505";
+export function isDuplicateKeyError(error: unknown): boolean {
+  return (error as { code?: string })?.code === "23505";
 }
 
 /**
@@ -56,8 +56,8 @@ export function isDuplicateKeyError(error: any): boolean {
  * @param error - Error object
  * @returns true if validation error
  */
-export function isValidationError(error: any): boolean {
-  return error?.code === "VALIDATION_ERROR" || error instanceof ValidationError;
+export function isValidationError(error: unknown): boolean {
+  return (error as { code?: string })?.code === "VALIDATION_ERROR" || error instanceof ValidationError;
 }
 
 /**
@@ -66,8 +66,8 @@ export function isValidationError(error: any): boolean {
  * @param error - Error object
  * @returns true if email not verified error
  */
-export function isEmailNotVerifiedError(error: any): boolean {
-  return error?.code === "EMAIL_NOT_VERIFIED";
+export function isEmailNotVerifiedError(error: unknown): boolean {
+  return (error as { code?: string })?.code === "EMAIL_NOT_VERIFIED";
 }
 
 /**

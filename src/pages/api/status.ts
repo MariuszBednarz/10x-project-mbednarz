@@ -53,16 +53,22 @@ export const GET: APIRoute = async ({ locals }) => {
 
     // 3. Return response
     return createSuccessResponse(200, status);
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle email not verified error
     if (isEmailNotVerifiedError(error)) {
-      return createErrorResponse(403, "FORBIDDEN", error.message, undefined, "Please verify your email address");
+      return createErrorResponse(
+        403,
+        "FORBIDDEN",
+        getErrorMessage(error),
+        undefined,
+        "Please verify your email address"
+      );
     }
 
     // Log and handle unexpected errors
     console.error("[GET /api/status] Error:", {
       message: getErrorMessage(error),
-      stack: error?.stack,
+      stack: error instanceof Error ? error.stack : undefined,
     });
 
     return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Failed to fetch system status");

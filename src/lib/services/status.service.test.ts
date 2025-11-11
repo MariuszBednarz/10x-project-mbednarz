@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { StatusService } from "./status.service";
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { SystemStatusDTO } from "@/types";
 import { ServiceError } from "@/lib/utils/error-handler";
 
 describe("StatusService", () => {
@@ -517,4 +516,3 @@ describe("StatusService", () => {
     });
   });
 });
-

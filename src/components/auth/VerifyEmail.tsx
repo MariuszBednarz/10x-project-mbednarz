@@ -36,8 +36,7 @@ export function VerifyEmail({ email }: VerifyEmailProps) {
       setResendCount(resendCount + 1);
       setMessage("Email weryfikacyjny został wysłany ponownie.");
       toast.success("Email weryfikacyjny został wysłany ponownie.");
-    } catch (err: any) {
-      console.error("Resend verification email error:", err);
+    } catch {
       setMessage("Nie udało się wysłać emaila. Spróbuj ponownie później.");
       toast.error("Nie udało się wysłać emaila. Spróbuj ponownie później.");
     } finally {

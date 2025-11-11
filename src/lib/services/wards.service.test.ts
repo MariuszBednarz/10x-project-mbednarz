@@ -382,7 +382,6 @@ describe("WardsService", () => {
 
       it("should preserve ServiceError when thrown", async () => {
         const params: WardsQueryParams = {};
-        const originalError = new ServiceError("DATABASE_ERROR", "Custom error");
 
         vi.mocked(mockSupabase.rpc).mockResolvedValue({
           data: null,

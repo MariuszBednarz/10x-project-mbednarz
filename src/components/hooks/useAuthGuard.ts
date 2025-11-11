@@ -70,14 +70,12 @@ export function useAuthGuard(options: UseAuthGuardOptions = {}): AuthGuardState 
 
         // No session - redirect to login
         if (error || !session) {
-          console.log("[Auth Guard] No session, redirecting to login");
           window.location.href = redirectTo;
           return;
         }
 
         // Check email verification
         if (requireEmailVerification && !session.user.email_confirmed_at) {
-          console.log("[Auth Guard] Email not verified, redirecting");
           window.location.href = verifyEmailRedirectTo;
           return;
         }
@@ -85,8 +83,7 @@ export function useAuthGuard(options: UseAuthGuardOptions = {}): AuthGuardState 
         // User is authenticated
         setUser(session.user);
         setLoading(false);
-      } catch (error) {
-        console.error("[Auth Guard] Error checking auth:", error);
+      } catch {
         if (mounted) {
           window.location.href = redirectTo;
         }

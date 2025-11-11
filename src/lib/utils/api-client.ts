@@ -39,7 +39,7 @@ export const apiClient = {
     return authenticatedFetch(url, { ...options, method: "GET" });
   },
 
-  async post(url: string, body?: any, options: RequestInit = {}) {
+  async post(url: string, body?: unknown, options: RequestInit = {}) {
     return authenticatedFetch(url, {
       ...options,
       method: "POST",
@@ -51,7 +51,7 @@ export const apiClient = {
     });
   },
 
-  async put(url: string, body?: any, options: RequestInit = {}) {
+  async put(url: string, body?: unknown, options: RequestInit = {}) {
     return authenticatedFetch(url, {
       ...options,
       method: "PUT",
@@ -67,7 +67,7 @@ export const apiClient = {
     return authenticatedFetch(url, { ...options, method: "DELETE" });
   },
 
-  async patch(url: string, body?: any, options: RequestInit = {}) {
+  async patch(url: string, body?: unknown, options: RequestInit = {}) {
     return authenticatedFetch(url, {
       ...options,
       method: "PATCH",

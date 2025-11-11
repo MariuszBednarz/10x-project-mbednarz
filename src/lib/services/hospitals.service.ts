@@ -75,7 +75,6 @@ export class HospitalsService {
         throw error;
       }
 
-      console.error("[HospitalsService.getHospitalsByWard] Unexpected error:", error);
       throw new ServiceError("INTERNAL_ERROR", "An unexpected error occurred while fetching hospitals");
     }
   }
@@ -88,8 +87,6 @@ export class HospitalsService {
    */
   async wardExists(wardName: string): Promise<boolean> {
     try {
-      console.log("[HospitalsService.wardExists] Checking ward:", wardName);
-
       const { error, count } = await this.supabase
         .from("hospital_wards")
         .select("wardName", { count: "exact" })
@@ -97,16 +94,13 @@ export class HospitalsService {
         .limit(1);
 
       if (error) {
-        console.error("[HospitalsService.wardExists] Error:", error);
         return false;
       }
 
       const exists = count !== null && count > 0;
-      console.log("[HospitalsService.wardExists] Result:", { wardName, exists, count });
 
       return exists;
-    } catch (error) {
-      console.error("[HospitalsService.wardExists] Unexpected error:", error);
+    } catch {
       return false;
     }
   }

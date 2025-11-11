@@ -24,14 +24,13 @@ export function LoginForm() {
       // Success - redirect to wards page
       toast.success("Zalogowano pomyślnie!");
       window.location.href = "/wards";
-    } catch (err: any) {
-      console.error("Login error:", err);
-
+    } catch (err: unknown) {
       // Handle specific Supabase errors
-      if (err.message?.includes("Invalid login credentials")) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes("Invalid login credentials")) {
         setError("Nieprawidłowy email lub hasło");
         toast.error("Nieprawidłowy email lub hasło");
-      } else if (err.message?.includes("Email not confirmed")) {
+      } else if (errorMessage.includes("Email not confirmed")) {
         setError("Potwierdź swój adres email przed zalogowaniem");
         toast.error("Potwierdź swój adres email przed zalogowaniem");
       } else {

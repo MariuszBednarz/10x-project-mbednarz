@@ -29,16 +29,14 @@ export const useInsights = () => {
 
         if (!response.ok) {
           // If insights fail, gracefully degrade (don't show error)
-          console.warn("[useInsights] Failed to fetch insights:", response.status);
           setInsight(null);
           return;
         }
 
         const data = await response.json();
         setInsight(data.data || null);
-      } catch (err) {
+      } catch {
         // Graceful degradation: insights are nice-to-have, not critical
-        console.warn("[useInsights] Error fetching insights:", err);
         setInsight(null);
       } finally {
         setLoading(false);

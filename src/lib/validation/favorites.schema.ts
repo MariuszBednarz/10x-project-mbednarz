@@ -34,10 +34,11 @@ export type AddFavoriteCommandInput = z.infer<typeof addFavoriteCommandSchema>;
 export function validateAddFavoriteCommand(input: unknown): AddFavoriteCommandInput {
   try {
     return addFavoriteCommandSchema.parse(input);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const zodError = error as { errors?: { message: string }[] };
     throw {
       code: "VALIDATION_ERROR",
-      message: error.errors?.[0]?.message || "Validation failed",
+      message: zodError.errors?.[0]?.message || "Validation failed",
     };
   }
 }

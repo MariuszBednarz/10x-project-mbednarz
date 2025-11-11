@@ -419,9 +419,7 @@ describe("isValidUUID", () => {
     });
 
     it("should reject numeric string (not hex)", () => {
-      const invalid = "12345678-9012-3456-7890-123456789012";
-      // This might actually be valid if all digits are valid hex
-      // Let's test with non-hex numeric string
+      // Test with non-hex numeric string
       const notHex = "12345678-90gh-3456-7890-123456789012";
       expect(isValidUUID(notHex)).toBe(false);
     });

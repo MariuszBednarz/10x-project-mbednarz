@@ -99,12 +99,10 @@ describe("parseAvailablePlaces", () => {
 
   describe("Edge cases", () => {
     it("should return 0 for null (coerced to empty string)", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(parseAvailablePlaces(null as any)).toBe(0);
     });
 
     it("should return 0 for undefined (coerced to empty string)", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(parseAvailablePlaces(undefined as any)).toBe(0);
     });
 
@@ -252,17 +250,14 @@ describe("isValidUUID (type-guards version)", () => {
 
   describe("Edge cases", () => {
     it("should reject null (coerced to string)", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(isValidUUID(null as any)).toBe(false);
     });
 
     it("should reject undefined (coerced to string)", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(isValidUUID(undefined as any)).toBe(false);
     });
 
     it("should reject number", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(isValidUUID(123 as any)).toBe(false);
     });
   });
@@ -617,14 +612,12 @@ describe("validateWardName", () => {
     });
 
     it("should handle null (coerced to 'null' string)", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = validateWardName(null as any);
 
       expect(result.isValid).toBe(false);
     });
 
     it("should handle undefined (coerced to 'undefined' string)", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = validateWardName(undefined as any);
 
       expect(result.isValid).toBe(false);
@@ -735,12 +728,10 @@ describe("isValidEmail", () => {
     });
 
     it("should reject null (coerced to string)", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(isValidEmail(null as any)).toBe(false);
     });
 
     it("should reject undefined (coerced to string)", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(isValidEmail(undefined as any)).toBe(false);
     });
 

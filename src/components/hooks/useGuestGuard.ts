@@ -45,15 +45,13 @@ export function useGuestGuard(options: UseGuestGuardOptions = {}) {
 
         // User is authenticated and email is verified - redirect
         if (session?.user?.email_confirmed_at) {
-          console.log("[Guest Guard] User already authenticated, redirecting");
           window.location.href = redirectTo;
           return;
         }
 
         // User is not authenticated - allow access
         setLoading(false);
-      } catch (error) {
-        console.error("[Guest Guard] Error checking auth:", error);
+      } catch {
         if (mounted) {
           setLoading(false);
         }

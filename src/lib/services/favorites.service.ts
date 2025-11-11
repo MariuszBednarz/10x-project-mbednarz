@@ -63,7 +63,6 @@ export class FavoritesService {
         throw error;
       }
 
-      console.error("[FavoritesService.getUserFavorites] Unexpected error:", error);
       throw new ServiceError("INTERNAL_ERROR", "An unexpected error occurred while fetching favorites");
     }
   }
@@ -111,7 +110,6 @@ export class FavoritesService {
         throw error;
       }
 
-      console.error("[FavoritesService.addFavorite] Unexpected error:", error);
       throw new ServiceError("INTERNAL_ERROR", "An unexpected error occurred while adding favorite");
     }
   }
@@ -147,7 +145,6 @@ export class FavoritesService {
         throw error;
       }
 
-      console.error("[FavoritesService.removeFavoriteByWardName] Unexpected error:", error);
       throw new ServiceError("INTERNAL_ERROR", "An unexpected error occurred while removing favorite");
     }
   }

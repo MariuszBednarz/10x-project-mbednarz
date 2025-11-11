@@ -13,7 +13,6 @@
 
 import type { APIRoute } from "astro";
 import { createErrorResponse, createSuccessResponse } from "@/lib/utils/api-response";
-import { getErrorMessage } from "@/lib/utils/error-handler";
 
 export const prerender = false;
 
@@ -39,23 +38,14 @@ export const POST: APIRoute = async ({ locals }) => {
     const { error } = await locals.supabase.auth.signOut();
 
     if (error) {
-      console.error("[POST /api/auth/logout] Supabase signOut error:", error);
       throw error;
     }
-
-    console.log("[POST /api/auth/logout] User logged out successfully");
 
     // Return success - client should clear localStorage
     return createSuccessResponse(200, {
       message: "Logged out successfully",
     });
-  } catch (error: any) {
-    // Log and handle unexpected errors
-    console.error("[POST /api/auth/logout] Error:", {
-      message: getErrorMessage(error),
-      stack: error?.stack,
-    });
-
+  } catch {
     return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Failed to logout");
   }
 };

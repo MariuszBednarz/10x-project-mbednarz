@@ -49,16 +49,22 @@ export const GET: APIRoute = async ({ locals }) => {
       email_confirmed_at: user.email_confirmed_at || null,
       created_at: user.created_at,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle email not verified error
     if (isEmailNotVerifiedError(error)) {
-      return createErrorResponse(403, "FORBIDDEN", error.message, undefined, "Please verify your email address");
+      return createErrorResponse(
+        403,
+        "FORBIDDEN",
+        getErrorMessage(error),
+        undefined,
+        "Please verify your email address"
+      );
     }
 
     // Log and handle unexpected errors
     console.error("[GET /api/users/me] Error:", {
       message: getErrorMessage(error),
-      stack: error?.stack,
+      stack: error instanceof Error ? error.stack : undefined,
     });
 
     return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Failed to fetch user profile");
@@ -97,7 +103,6 @@ export const DELETE: APIRoute = async ({ locals }) => {
     const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !serviceRoleKey) {
-      console.error("[DELETE /api/users/me] Missing Supabase configuration");
       return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Server configuration error");
     }
 
@@ -118,27 +123,31 @@ export const DELETE: APIRoute = async ({ locals }) => {
     const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id);
 
     if (error) {
-      console.error("[DELETE /api/users/me] Supabase Admin API error:", {
+      console.error("[DELETE /api/users/me] Failed to delete user:", {
         userId: user.id,
         error: error.message,
       });
       throw error;
     }
 
-    console.log(`[DELETE /api/users/me] Successfully deleted user: ${user.id}`);
-
     // 5. Return 204 No Content
     return new Response(null, { status: 204 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle email not verified error
     if (isEmailNotVerifiedError(error)) {
-      return createErrorResponse(403, "FORBIDDEN", error.message, undefined, "Please verify your email address");
+      return createErrorResponse(
+        403,
+        "FORBIDDEN",
+        getErrorMessage(error),
+        undefined,
+        "Please verify your email address"
+      );
     }
 
     // Log and handle unexpected errors
     console.error("[DELETE /api/users/me] Error:", {
       message: getErrorMessage(error),
-      stack: error?.stack,
+      stack: error instanceof Error ? error.stack : undefined,
     });
 
     return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Failed to delete user account");

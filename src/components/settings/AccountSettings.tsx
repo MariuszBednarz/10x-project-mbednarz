@@ -47,8 +47,8 @@ export function AccountSettings() {
         createdAt: data.created_at,
         emailVerified: !!data.email_confirmed_at,
       });
-    } catch (error) {
-      console.error("Failed to fetch user profile:", error);
+    } catch {
+      // Error handled silently - user stays on page
     } finally {
       setIsLoading(false);
     }
@@ -60,8 +60,7 @@ export function AccountSettings() {
       await authService.signOut();
       toast.success("Wylogowano pomyślnie");
       window.location.href = "/";
-    } catch (error) {
-      console.error("Failed to logout:", error);
+    } catch {
       toast.error("Nie udało się wylogować. Spróbuj ponownie.");
       setIsLoggingOut(false);
     }
@@ -84,8 +83,7 @@ export function AccountSettings() {
       // Success - redirect to home page
       toast.success("Konto zostało usunięte");
       window.location.href = "/";
-    } catch (error) {
-      console.error("Failed to delete account:", error);
+    } catch {
       toast.error("Nie udało się usunąć konta. Spróbuj ponownie.");
       setIsDeleting(false);
     }

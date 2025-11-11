@@ -29,19 +29,18 @@ export function RegisterForm() {
     setIsLoading(true);
 
     try {
-      const { user } = await authService.signUp({ email, password });
+      await authService.signUp({ email, password });
 
       // Success - redirect to verify-email page
       toast.success("Konto utworzone! Sprawdź swoją skrzynkę email.");
       window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
-    } catch (err: any) {
-      console.error("Registration error:", err);
-
+    } catch (err: unknown) {
       // Handle specific Supabase errors
-      if (err.message?.includes("User already registered")) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes("User already registered")) {
         setError("Ten adres email jest już zarejestrowany");
         toast.error("Ten adres email jest już zarejestrowany");
-      } else if (err.message?.includes("Password should be at least")) {
+      } else if (errorMessage.includes("Password should be at least")) {
         setError("Hasło musi mieć co najmniej 8 znaków");
         toast.error("Hasło musi mieć co najmniej 8 znaków");
       } else {

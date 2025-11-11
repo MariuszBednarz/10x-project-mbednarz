@@ -24,14 +24,13 @@ export function ForgotPasswordForm() {
       // Success - show message
       setIsSuccess(true);
       toast.success("Link do resetowania hasła został wysłany na podany adres email");
-    } catch (err: any) {
-      console.error("Password reset request error:", err);
-
+    } catch (err: unknown) {
       // Handle specific Supabase errors
-      if (err.message?.includes("Email rate limit exceeded")) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes("Email rate limit exceeded")) {
         setError("Zbyt wiele prób. Spróbuj ponownie później.");
         toast.error("Zbyt wiele prób. Spróbuj ponownie później.");
-      } else if (err.message?.includes("Invalid email")) {
+      } else if (errorMessage.includes("Invalid email")) {
         setError("Nieprawidłowy format adresu email");
         toast.error("Nieprawidłowy format adresu email");
       } else {

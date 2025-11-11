@@ -23,7 +23,6 @@ interface NavbarMobileProps {
 }
 
 export function NavbarMobile({
-  user,
   isLoading,
   showInsightIcon,
   onRestoreInsight,
