@@ -67,48 +67,28 @@ export function AccountSettings() {
   };
 
   const handleDeleteAccount = async () => {
-    console.warn("[AccountSettings] Starting account deletion process...");
     setIsDeleting(true);
     try {
-      console.warn("[AccountSettings] Sending DELETE request to /api/users/me");
       const response = await authenticatedFetch("/api/users/me", {
         method: "DELETE",
       });
 
-      console.warn("[AccountSettings] DELETE response received:", {
-        status: response.status,
-        ok: response.ok,
-        statusText: response.statusText,
-      });
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.warn("[AccountSettings] DELETE request failed:", {
-          status: response.status,
-          error: errorText,
-        });
 
-        // Parse and display detailed error message
         try {
           const errorData = JSON.parse(errorText);
-          console.error("[AccountSettings] DETAILED ERROR:", errorData.message);
+          console.error("[AccountSettings] Delete failed:", errorData.message);
           toast.error(errorData.message || "Nie udało się usunąć konta. Spróbuj ponownie.");
         } catch {
-          console.error("[AccountSettings] Could not parse error JSON");
           toast.error("Nie udało się usunąć konta. Spróbuj ponownie.");
         }
 
         throw new Error(errorText);
       }
 
-      console.warn("[AccountSettings] Account deleted successfully, signing out...");
-
-      // Logout
       await authService.signOut();
 
-      console.warn("[AccountSettings] Signed out, redirecting to home page...");
-
-      // Success - redirect to home page
       toast.success("Konto zostało usunięte");
       window.location.href = "/";
     } catch (error) {

@@ -46,7 +46,6 @@ export const WardsList = () => {
 
   const { insight } = useInsights();
 
-  // Initialize insight visibility from sessionStorage
   useEffect(() => {
     const isDismissed = sessionStorage.getItem("insightDismissed") === "true";
     setShowInsight(!isDismissed && !!insight);

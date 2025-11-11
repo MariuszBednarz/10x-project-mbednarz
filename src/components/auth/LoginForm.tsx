@@ -21,11 +21,9 @@ export function LoginForm() {
     try {
       await authService.signIn({ email, password });
 
-      // Success - redirect to wards page
       toast.success("Zalogowano pomyślnie!");
       window.location.href = "/wards";
     } catch (err: unknown) {
-      // Handle specific Supabase errors
       const errorMessage = err instanceof Error ? err.message : String(err);
       if (errorMessage.includes("Invalid login credentials")) {
         setError("Nieprawidłowy email lub hasło");
@@ -42,7 +40,6 @@ export function LoginForm() {
     }
   };
 
-  // Show loading state while checking auth
   if (guardLoading) {
     return (
       <Card>

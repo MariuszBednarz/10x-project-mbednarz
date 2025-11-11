@@ -11,11 +11,7 @@ export interface SignInData {
 }
 
 export const authService = {
-  /**
-   * Sign up a new user
-   */
   async signUp(data: SignUpData) {
-    // Normalize email: trim whitespace and convert to lowercase
     const email = data.email.trim().toLowerCase();
 
     const { data: authData, error } = await supabaseClient.auth.signUp({
@@ -30,11 +26,7 @@ export const authService = {
     return authData;
   },
 
-  /**
-   * Sign in an existing user
-   */
   async signIn(data: SignInData) {
-    // Normalize email: trim whitespace and convert to lowercase
     const email = data.email.trim().toLowerCase();
 
     const { data: authData, error } = await supabaseClient.auth.signInWithPassword({
@@ -49,9 +41,6 @@ export const authService = {
     return authData;
   },
 
-  /**
-   * Sign out the current user
-   */
   async signOut() {
     const { error } = await supabaseClient.auth.signOut();
 
@@ -60,9 +49,6 @@ export const authService = {
     }
   },
 
-  /**
-   * Get the current session
-   */
   async getSession() {
     const { data, error } = await supabaseClient.auth.getSession();
 
@@ -73,9 +59,6 @@ export const authService = {
     return data.session;
   },
 
-  /**
-   * Get the current user
-   */
   async getUser() {
     const { data, error } = await supabaseClient.auth.getUser();
 
@@ -86,11 +69,7 @@ export const authService = {
     return data.user;
   },
 
-  /**
-   * Resend verification email
-   */
   async resendVerificationEmail(email: string) {
-    // Normalize email: trim whitespace and convert to lowercase
     const normalizedEmail = email.trim().toLowerCase();
 
     const { error } = await supabaseClient.auth.resend({
@@ -103,11 +82,7 @@ export const authService = {
     }
   },
 
-  /**
-   * Request password reset email
-   */
   async requestPasswordReset(email: string) {
-    // Normalize email: trim whitespace and convert to lowercase
     const normalizedEmail = email.trim().toLowerCase();
 
     const { error } = await supabaseClient.auth.resetPasswordForEmail(normalizedEmail, {
@@ -119,9 +94,6 @@ export const authService = {
     }
   },
 
-  /**
-   * Update user password (after clicking reset link)
-   */
   async updatePassword(newPassword: string) {
     const { error } = await supabaseClient.auth.updateUser({
       password: newPassword,

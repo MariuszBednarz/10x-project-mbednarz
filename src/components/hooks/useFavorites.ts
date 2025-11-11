@@ -6,15 +6,6 @@ interface UseFavoritesOptions {
   onSuccess?: (message: string) => void;
 }
 
-/**
- * Custom hook for managing favorites with optimistic updates
- *
- * Features:
- * - Optimistic UI updates (immediate toggle, rollback on error)
- * - API integration (POST /api/users/me/favorites, DELETE /api/users/me/favorites/by-ward/{wardName})
- * - Error handling with toast notifications
- * - Loading states per favorite
- */
 export const useFavorites = (options?: UseFavoritesOptions) => {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loadingWards, setLoadingWards] = useState<Set<string>>(new Set());
@@ -26,29 +17,24 @@ export const useFavorites = (options?: UseFavoritesOptions) => {
       const previousFavorites = new Set(favorites);
 
       try {
-        // 1. Optimistic update - immediate UI change
         setError(null);
         setLoadingWards((prev) => new Set(prev).add(wardName));
 
         if (isFavorite) {
-          // Remove from favorites
           setFavorites((prev) => {
             const next = new Set(prev);
             next.delete(wardName);
             return next;
           });
         } else {
-          // Add to favorites
           setFavorites((prev) => new Set(prev).add(wardName));
         }
 
-        // 2. API call
         const response = isFavorite
           ? await apiClient.delete(`/api/users/me/favorites/by-ward/${encodeURIComponent(wardName)}`)
           : await apiClient.post(`/api/users/me/favorites`, { ward_name: wardName });
 
         if (!response.ok) {
-          // 3. Rollback on error
           setFavorites(previousFavorites);
 
           const errorData = await response.json().catch(() => ({}));

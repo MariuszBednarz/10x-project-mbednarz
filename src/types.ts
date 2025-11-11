@@ -1,37 +1,16 @@
-/**
- * Shared Types - Frontend & Backend DTOs
- *
- * This file contains Data Transfer Objects and shared types for the HosLU API
- *
- * @see .ai/api-plan.md for API contract specifications
- * @see .ai/api-implementation-plan.md for implementation details
- */
-
-// ===========================================
-// ENTITY TYPES (Database Records)
-// ===========================================
-
-/**
- * Hospital Ward - Individual hospital record with bed availability
- * Maps to: hospital_wards table
- */
 export interface HospitalWardDTO {
   id: string;
   wardName: string;
   wardLink: string | null;
   district: string | null;
   hospitalName: string;
-  availablePlaces: string; // VARCHAR - handle conversion carefully
-  lastUpdated: string | null; // ⚠️ Unreliable - from source HTML
-  scrapedAt: string; // ✅ Reliable - our timestamp
+  availablePlaces: string;
+  lastUpdated: string | null;
+  scrapedAt: string;
   created_at: string;
   updated_at: string;
 }
 
-/**
- * User Favorite - User's favorited ward
- * Maps to: user_favorites table
- */
 export interface UserFavoriteDTO {
   id: string;
   user_id: string;
@@ -39,10 +18,6 @@ export interface UserFavoriteDTO {
   created_at: string;
 }
 
-/**
- * AI Insight - Cached AI-generated insight
- * Maps to: ai_insights table
- */
 export interface AIInsightDTO {
   id: string;
   insight_text: string;
@@ -52,14 +27,6 @@ export interface AIInsightDTO {
   updated_at: string;
 }
 
-// ===========================================
-// API RESPONSE TYPES
-// ===========================================
-
-/**
- * Ward Aggregated - Single ward with statistics
- * Used in: GET /api/wards
- */
 export interface WardAggregatedDTO {
   wardName: string;
   hospitalCount: number;
@@ -68,9 +35,6 @@ export interface WardAggregatedDTO {
   lastScrapedAt: string;
 }
 
-/**
- * Wards List Response - Response for GET /api/wards
- */
 export interface WardsListResponseDTO {
   data: WardAggregatedDTO[];
   meta: {
@@ -82,9 +46,6 @@ export interface WardsListResponseDTO {
   };
 }
 
-/**
- * Hospitals List Response - Response for GET /api/wards/{wardName}/hospitals
- */
 export interface HospitalsListResponseDTO {
   data: HospitalWardDTO[];
   meta: {
@@ -94,9 +55,6 @@ export interface HospitalsListResponseDTO {
   };
 }
 
-/**
- * Favorites List Response - Response for GET /api/users/me/favorites
- */
 export interface FavoritesListResponseDTO {
   data: FavoriteWithStatsDTO[];
   meta: {
@@ -142,13 +100,6 @@ export interface SystemStatusDTO {
   scrapingSuccessRate30d: number;
 }
 
-/**
- * Type guard: Parse Json from get_system_status() to SystemStatusDTO
- *
- * @example
- * const { data } = await supabase.rpc('get_system_status');
- * const status = parseSystemStatus(data);
- */
 export function parseSystemStatus(json: unknown): SystemStatusDTO {
   if (!json || typeof json !== "object") {
     throw new Error("Invalid system status response");
@@ -166,58 +117,26 @@ export function parseSystemStatus(json: unknown): SystemStatusDTO {
   };
 }
 
-// ===========================================
-// COMMAND TYPES (API Inputs)
-// ===========================================
-
-/**
- * Add Favorite Command - Input for POST /api/users/me/favorites
- */
 export interface AddFavoriteCommand {
   ward_name: string;
 }
 
-// ===========================================
-// QUERY PARAMETER TYPES
-// ===========================================
-
-/**
- * Pagination Query Parameters
- * Used across multiple endpoints
- */
 export interface PaginationQueryParams {
-  limit?: number; // default: 50, max: 100
-  offset?: number; // default: 0
+  limit?: number;
+  offset?: number;
 }
 
-/**
- * Wards Query Parameters - GET /api/wards
- *
- * Note: Sorting is fixed at database level (total_places DESC).
- * For alternative sorting, implement client-side after fetching data.
- */
 export interface WardsQueryParams extends PaginationQueryParams {
   search?: string;
   favorites_only?: boolean;
 }
 
-/**
- * Hospitals Query Parameters - GET /api/wards/{wardName}/hospitals
- */
 export interface HospitalsQueryParams extends PaginationQueryParams {
   district?: string;
   search?: string;
   order?: "availablePlaces.desc" | "hospitalName.asc";
 }
 
-// ===========================================
-// ERROR TYPES
-// ===========================================
-
-/**
- * Standard Error Response
- * Used across all endpoints
- */
 export interface ErrorResponseDTO {
   code: string;
   message: string;
@@ -225,9 +144,6 @@ export interface ErrorResponseDTO {
   hint?: string;
 }
 
-/**
- * Common Error Codes
- */
 export enum ErrorCode {
   VALIDATION_ERROR = "VALIDATION_ERROR",
   UNAUTHORIZED = "UNAUTHORIZED",
@@ -241,21 +157,11 @@ export enum ErrorCode {
   UNPROCESSABLE_ENTITY = "UNPROCESSABLE_ENTITY",
 }
 
-// ===========================================
-// HELPER TYPES
-// ===========================================
-
-/**
- * API Response Wrapper (Generic)
- */
 export interface APIResponse<T> {
   data: T;
   meta?: Record<string, unknown>;
 }
 
-/**
- * Paginated Response Wrapper (Generic)
- */
 export interface PaginatedResponse<T> {
   data: T[];
   meta: {

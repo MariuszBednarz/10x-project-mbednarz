@@ -1,34 +1,10 @@
-/**
- * Auth Guard Hook
- *
- * Client-side authentication guard for protected pages.
- * Redirects to login if user is not authenticated.
- *
- * This is necessary because Supabase stores session in localStorage,
- * which is not accessible in SSR middleware.
- */
-
 import { useEffect, useState } from "react";
 import { supabaseClient } from "@/db/supabase.client";
 import type { User } from "@supabase/supabase-js";
 
 interface UseAuthGuardOptions {
-  /**
-   * Redirect URL if not authenticated
-   * @default "/login"
-   */
   redirectTo?: string;
-
-  /**
-   * Whether to check email verification
-   * @default true
-   */
   requireEmailVerification?: boolean;
-
-  /**
-   * Redirect URL if email not verified
-   * @default "/verify-email"
-   */
   verifyEmailRedirectTo?: string;
 }
 
@@ -38,18 +14,6 @@ interface AuthGuardState {
   isAuthenticated: boolean;
 }
 
-/**
- * Hook to protect pages that require authentication
- *
- * @example
- * function ProtectedPage() {
- *   const { user, loading, isAuthenticated } = useAuthGuard();
- *
- *   if (loading) return <div>Loading...</div>;
- *
- *   return <div>Welcome {user?.email}</div>;
- * }
- */
 export function useAuthGuard(options: UseAuthGuardOptions = {}): AuthGuardState {
   const { redirectTo = "/login", requireEmailVerification = true, verifyEmailRedirectTo = "/verify-email" } = options;
 
@@ -68,19 +32,16 @@ export function useAuthGuard(options: UseAuthGuardOptions = {}): AuthGuardState 
 
         if (!mounted) return;
 
-        // No session - redirect to login
         if (error || !session) {
           window.location.href = redirectTo;
           return;
         }
 
-        // Check email verification
         if (requireEmailVerification && !session.user.email_confirmed_at) {
           window.location.href = verifyEmailRedirectTo;
           return;
         }
 
-        // User is authenticated
         setUser(session.user);
         setLoading(false);
       } catch {
