@@ -14,11 +14,22 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     data: { session },
   } = await supabaseClient.auth.getSession();
 
+  console.warn("[authenticatedFetch] Request details:", {
+    url,
+    method: options.method || "GET",
+    hasSession: !!session,
+    hasAccessToken: !!session?.access_token,
+    tokenLength: session?.access_token?.length || 0,
+  });
+
   // Merge headers with Authorization if session exists
   const headers = new Headers(options.headers);
 
   if (session?.access_token) {
     headers.set("Authorization", `Bearer ${session.access_token}`);
+    console.warn("[authenticatedFetch] Authorization header set");
+  } else {
+    console.warn("[authenticatedFetch] WARNING: No access token available!");
   }
 
   // Include credentials for cookie-based auth (fallback)
@@ -39,21 +50,44 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
       try {
         const errorData = await clonedResponse.json();
         if (errorData.message === "Missing or invalid authentication token") {
+          console.warn("[authenticatedFetch] Detected invalid token (401), attempting to clear session...");
+
           // Clear invalid session from localStorage
           await supabaseClient.auth.signOut();
+
+          console.warn("[authenticatedFetch] Called supabaseClient.auth.signOut()");
 
           // Force clear localStorage - signOut() sometimes doesn't work properly
           // Remove all Supabase auth keys (sb-*-auth-token)
           if (typeof window !== "undefined") {
-            Object.keys(localStorage).forEach((key) => {
-              if (key.startsWith("sb-") && key.includes("-auth-token")) {
-                localStorage.removeItem(key);
-              }
+            const keysBeforeClear = Object.keys(localStorage).filter(
+              (key) => key.startsWith("sb-") && key.includes("-auth-token")
+            );
+
+            console.warn("[authenticatedFetch] Found Supabase auth keys in localStorage:", {
+              keys: keysBeforeClear,
+              count: keysBeforeClear.length,
+            });
+
+            keysBeforeClear.forEach((key) => {
+              localStorage.removeItem(key);
+              console.warn(`[authenticatedFetch] Removed localStorage key: ${key}`);
+            });
+
+            const keysAfterClear = Object.keys(localStorage).filter(
+              (key) => key.startsWith("sb-") && key.includes("-auth-token")
+            );
+
+            console.warn("[authenticatedFetch] Remaining keys after cleanup:", {
+              keys: keysAfterClear,
+              count: keysAfterClear.length,
+              cleanupSuccess: keysAfterClear.length === 0,
             });
           }
         }
-      } catch {
+      } catch (error) {
         // If JSON parsing fails, ignore - not our target error
+        console.warn("[authenticatedFetch] Failed to parse 401 response JSON:", error);
       }
     }
   }

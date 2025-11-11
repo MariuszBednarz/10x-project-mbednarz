@@ -95,14 +95,27 @@ export const DELETE: APIRoute = async ({ locals }) => {
     // 1. Authenticate user
     const user = await getAuthenticatedUser(locals.supabase);
     if (!user) {
+      console.warn("[DELETE /api/users/me] Authentication failed - no user found");
       return createErrorResponse(401, "UNAUTHORIZED", "Missing or invalid authentication token");
     }
+
+    console.warn("[DELETE /api/users/me] Starting account deletion for user:", {
+      userId: user.id,
+      email: user.email,
+    });
 
     // 2. Check for service role key
     const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
     const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
+    console.warn("[DELETE /api/users/me] Environment variables check:", {
+      supabaseUrl: supabaseUrl ? "✓ Present" : "✗ Missing",
+      serviceRoleKey: serviceRoleKey ? "✓ Present" : "✗ Missing",
+      serviceRoleKeyLength: serviceRoleKey?.length || 0,
+    });
+
     if (!supabaseUrl || !serviceRoleKey) {
+      console.warn("[DELETE /api/users/me] CRITICAL: Missing environment variables - cannot delete user");
       return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Server configuration error");
     }
 
@@ -120,15 +133,21 @@ export const DELETE: APIRoute = async ({ locals }) => {
     // This will delete:
     // - User account from auth.users
     // - All user_favorites (CASCADE via user_id foreign key)
+    console.warn("[DELETE /api/users/me] Attempting to delete user via admin client...");
     const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id);
 
     if (error) {
       console.error("[DELETE /api/users/me] Failed to delete user:", {
         userId: user.id,
         error: error.message,
+        errorDetails: error,
       });
       throw error;
     }
+
+    console.warn("[DELETE /api/users/me] User deleted successfully:", {
+      userId: user.id,
+    });
 
     // 5. Return 204 No Content
     return new Response(null, { status: 204 });
