@@ -1,15 +1,9 @@
 import { useState, useEffect } from "react";
 import { authenticatedFetch } from "@/lib/utils/api-client";
-
-interface Insight {
-  id: string;
-  insight_text: string;
-  generated_at: string;
-  expires_at: string;
-}
+import type { CurrentInsightResponseDTO } from "@/types";
 
 export const useInsights = () => {
-  const [insight, setInsight] = useState<Insight | null>(null);
+  const [insight, setInsight] = useState<CurrentInsightResponseDTO | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +28,7 @@ export const useInsights = () => {
         }
 
         const data = await response.json();
-        setInsight(data.data || null);
+        setInsight(data || null);
       } catch {
         // Graceful degradation: insights are nice-to-have, not critical
         setInsight(null);
