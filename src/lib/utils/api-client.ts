@@ -28,7 +28,27 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     credentials: options.credentials || "include",
   };
 
-  return fetch(url, enhancedOptions);
+  const response = await fetch(url, enhancedOptions);
+
+  // Handle invalid authentication token edge case
+  // When user deletes account in one tab, other tabs have invalid token
+  if (response.status === 401) {
+    const contentType = response.headers.get("content-type");
+    if (contentType?.includes("application/json")) {
+      const clonedResponse = response.clone();
+      try {
+        const errorData = await clonedResponse.json();
+        if (errorData.message === "Missing or invalid authentication token") {
+          // Clear invalid session from localStorage
+          await supabaseClient.auth.signOut();
+        }
+      } catch {
+        // If JSON parsing fails, ignore - not our target error
+      }
+    }
+  }
+
+  return response;
 }
 
 /**
