@@ -106,7 +106,8 @@ export const DELETE: APIRoute = async ({ locals }) => {
 
     // 2. Check for service role key
     const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+    // Cloudflare Pages: secret env vars are in runtime.env, not import.meta.env
+    const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     console.warn("[DELETE /api/users/me] Environment variables check:", {
       supabaseUrl: supabaseUrl ? "✓ Present" : "✗ Missing",
