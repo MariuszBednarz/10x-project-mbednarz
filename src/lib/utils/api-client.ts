@@ -41,6 +41,16 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
         if (errorData.message === "Missing or invalid authentication token") {
           // Clear invalid session from localStorage
           await supabaseClient.auth.signOut();
+
+          // Force clear localStorage - signOut() sometimes doesn't work properly
+          // Remove all Supabase auth keys (sb-*-auth-token)
+          if (typeof window !== "undefined") {
+            Object.keys(localStorage).forEach((key) => {
+              if (key.startsWith("sb-") && key.includes("-auth-token")) {
+                localStorage.removeItem(key);
+              }
+            });
+          }
         }
       } catch {
         // If JSON parsing fails, ignore - not our target error
