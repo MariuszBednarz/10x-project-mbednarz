@@ -87,7 +87,18 @@ export function AccountSettings() {
           status: response.status,
           error: errorText,
         });
-        throw new Error("Failed to delete account");
+
+        // Parse and display detailed error message
+        try {
+          const errorData = JSON.parse(errorText);
+          console.error("[AccountSettings] DETAILED ERROR:", errorData.message);
+          toast.error(errorData.message || "Nie udało się usunąć konta. Spróbuj ponownie.");
+        } catch {
+          console.error("[AccountSettings] Could not parse error JSON");
+          toast.error("Nie udało się usunąć konta. Spróbuj ponownie.");
+        }
+
+        throw new Error(errorText);
       }
 
       console.warn("[AccountSettings] Account deleted successfully, signing out...");

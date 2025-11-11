@@ -116,17 +116,30 @@ export const DELETE: APIRoute = async ({ locals }) => {
 
     if (!supabaseUrl || !serviceRoleKey) {
       console.warn("[DELETE /api/users/me] CRITICAL: Missing environment variables - cannot delete user");
-      return createErrorResponse(500, "INTERNAL_SERVER_ERROR", "Server configuration error");
+      // TEMPORARY DEBUG: Return detailed env info
+      return createErrorResponse(
+        500,
+        "INTERNAL_SERVER_ERROR",
+        `DEBUG ENV: supabaseUrl=${supabaseUrl ? "OK" : "MISSING"}, serviceRoleKey=${serviceRoleKey ? `OK-length:${serviceRoleKey.length}` : "MISSING"}, allEnvKeys=${Object.keys(import.meta.env).join(",")}`
+      );
     }
 
     // 3. Create admin client with service role key
     // ⚠️ CRITICAL: Only use service role key on backend
+    console.warn("[DELETE /api/users/me] Creating admin client with:", {
+      urlLength: supabaseUrl.length,
+      keyLength: serviceRoleKey.length,
+      keyPrefix: serviceRoleKey.substring(0, 20) + "...",
+    });
+
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
       },
     });
+
+    console.warn("[DELETE /api/users/me] Admin client created successfully");
 
     // 4. Delete user from auth.users
     // CASCADE DELETE automatic via foreign key constraints
@@ -142,7 +155,12 @@ export const DELETE: APIRoute = async ({ locals }) => {
         error: error.message,
         errorDetails: error,
       });
-      throw error;
+      // TEMPORARY DEBUG: Return detailed error info
+      return createErrorResponse(
+        500,
+        "INTERNAL_SERVER_ERROR",
+        `DEBUG DELETE ERROR: ${error.message} | code: ${error.code || "N/A"} | status: ${error.status || "N/A"}`
+      );
     }
 
     console.warn("[DELETE /api/users/me] User deleted successfully:", {
